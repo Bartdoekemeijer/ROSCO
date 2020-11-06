@@ -21,6 +21,7 @@ Scripts/CompileDISCONHereCopyRun\.cmd
 .DS_Store
 *.u2d
 *.vscode
+*.swp
 
 # Intel fortran
 *.i90
