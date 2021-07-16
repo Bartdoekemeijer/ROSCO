@@ -26,8 +26,8 @@ int zmq_client (
     double setpoints[5]
 )
 {
-    int verbose = 1; // Variable to define verbose
-    int i = 0, ns = 3, nm = 15, ml = 16;  // Number of setpoints and measurements, respectively, and float precision (character length)
+    int verbose = 0; // Variable to define verbose
+    int i = 0, ns = 5, nm = 15, ml = 16;  // Number of setpoints and measurements, respectively, and float precision (character length)
     int slm = ml * nm + (nm - 1);  // Measurement string length
     int sls = ml * ns + (ns - 1);  // Setpoint string length
     if (verbose == 1) {
