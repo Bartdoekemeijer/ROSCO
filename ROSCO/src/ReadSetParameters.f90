@@ -57,7 +57,7 @@ CONTAINS
 
         character(256) :: zmq_address
         real(C_DOUBLE), dimension(0:14) :: turbine_measurements
-        real(C_DOUBLE), dimension(0:1) :: setpoints
+        real(C_DOUBLE), dimension(0:4) :: setpoints
 
         ! Load variables from calling program (See Appendix A of Bladed User's Guide):
         LocalVar%iStatus = NINT(avrSWAP(1))
@@ -111,7 +111,12 @@ CONTAINS
         zmq_address = C_CHAR_"tcp://localhost:5555"//C_NULL_CHAR
 
         ! Call ZeroMQ function and exchange information
-        CALL UpdateZeroMQ(turbine_measurements, zmq_address)
+        CALL UpdateZeroMQ(turbine_measurements, zmq_address, setpoints)
+        write (*,*) "ZeroMQInterface: torque setpoint from ssc: ", setpoints(0)
+        write (*,*) "ZeroMQInterface: yaw setpoint from ssc: ", setpoints(1)
+        write (*,*) "ZeroMQInterface: pitch 1 setpoint from ssc: ", setpoints(2)
+        write (*,*) "ZeroMQInterface: pitch 2 setpoint from ssc: ", setpoints(3)
+        write (*,*) "ZeroMQInterface: pitch 3 setpoint from ssc: ", setpoints(4)
 
         PRINT *,' Coming out of ZeroMQ client interface...'
 

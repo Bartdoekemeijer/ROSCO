@@ -4,7 +4,7 @@ module ZeroMQInterface
     ! 
 
 CONTAINS
-    SUBROUTINE UpdateZeroMQ(turbine_measurements, zmq_address)
+    SUBROUTINE UpdateZeroMQ(turbine_measurements, zmq_address, setpoints)
         IMPLICIT NONE
         character(256) :: zmq_address
         real(C_DOUBLE), dimension(0:4) :: setpoints
@@ -21,13 +21,13 @@ CONTAINS
         end interface
 
         ! zmq_address = C_CHAR_"tcp://localhost:5555"//C_NULL_CHAR
-        call zmq_client(zmq_address,turbine_measurements,setpoints)
+        call zmq_client(zmq_address, turbine_measurements, setpoints)
 
-        write (*,*) "ZeroMQInterface: torque setpoint from ssc: ", setpoints(0)
-        write (*,*) "ZeroMQInterface: yaw setpoint from ssc: ", setpoints(1)
-        write (*,*) "ZeroMQInterface: pitch 1 setpoint from ssc: ", setpoints(2)
-        write (*,*) "ZeroMQInterface: pitch 2 setpoint from ssc: ", setpoints(3)
-        write (*,*) "ZeroMQInterface: pitch 3 setpoint from ssc: ", setpoints(4)
+        ! write (*,*) "ZeroMQInterface: torque setpoint from ssc: ", setpoints(0)
+        ! write (*,*) "ZeroMQInterface: yaw setpoint from ssc: ", setpoints(1)
+        ! write (*,*) "ZeroMQInterface: pitch 1 setpoint from ssc: ", setpoints(2)
+        ! write (*,*) "ZeroMQInterface: pitch 2 setpoint from ssc: ", setpoints(3)
+        ! write (*,*) "ZeroMQInterface: pitch 3 setpoint from ssc: ", setpoints(4)
 
     END SUBROUTINE UpdateZeroMQ
 end module ZeroMQInterface
