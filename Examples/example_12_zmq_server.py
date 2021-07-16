@@ -53,7 +53,7 @@ while True:
     stpnt_yaw = 275.838
     stpnt_pitch1 = 3. + 5.*np.sin(measurements['Time'])
     stpnt_pitch2 = 0.0
-    stpnt_pitch3 = 0.0
+    stpnt_pitch3 = -4.1
 
     # # Create a message with setpoints to send to ROSCO
     message_out = b"%016.5f, %016.5f, %016.5f, %016.5f, %016.5f" % (
@@ -63,6 +63,8 @@ while True:
     #  Send reply back to client
     print("Sending string to ROSCO: %s." % message_out)
     socket.send(message_out)
+
+    print("Sleeping a couple seconds...")
     time.sleep(5.0)
 
     i += 1
