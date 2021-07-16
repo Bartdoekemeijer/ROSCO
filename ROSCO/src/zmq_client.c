@@ -22,12 +22,12 @@ void delete_blank_spaces_in_string(char *s)
 
 int zmq_client (
     char *zmq_address,
-    double measurements[3],
-    double setpoints[2]
+    double measurements[15],
+    double setpoints[5]
 )
 {
     int verbose = 1; // Variable to define verbose
-    int i = 0, ns = 2, nm = 3, ml = 10;  // Number of setpoints and measurements, respectively, and float precision (character length)
+    int i = 0, ns = 3, nm = 15, ml = 16;  // Number of setpoints and measurements, respectively, and float precision (character length)
     int slm = ml * nm + (nm - 1);  // Measurement string length
     int sls = ml * ns + (ns - 1);  // Setpoint string length
     if (verbose == 1) {
@@ -40,12 +40,16 @@ int zmq_client (
     zmq_connect (requester, zmq_address);  // string_to_zmq is something like "tcp://localhost:5555"
 
     // Create a string with measurements to be sent to ZeroMQ server (e.g., Python)
-    char a[ml], b[ml], string_to_ssc[slm];
-    sprintf(a, "%6.3f,", measurements[0]);
+    char a[slm], string_to_ssc[slm], b[ml];
+    // char b[slm];
+    sprintf(a, "%016.5f,", measurements[0]);
+    // printf ("zmq_client.c: a[ml]: measurements[0]: %s\n", a);
     i = 1;
     while (i <= nm) {
-        sprintf(b, "%6.3f", measurements[i]);
+        sprintf(b, "%016.5f,", measurements[i]);
         strcat(a, b);  // Concatenate b to a
+        // printf ("zmq_client.c: b[ml]: measurements[i]: %s\n", b);
+        // printf (" --> zmq_client.c: a[ml]: measurements[i]: %s\n", a);
         i = i + 1;
     }
     strncpy(string_to_ssc, a, slm);
@@ -57,7 +61,7 @@ int zmq_client (
 
     // Core ZeroMQ communication: receive data and send back signals
     char string_from_ssc[sls];  // Buffer to receive message in
-    zmq_send (requester, string_to_ssc, sls, 0);
+    zmq_send (requester, string_to_ssc, slm, 0);
     zmq_recv (requester, string_from_ssc, sls, 0);
 
     if (verbose == 1) {
