@@ -50,10 +50,11 @@ CONTAINS
     ! Read avrSWAP array passed from ServoDyn    
     SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar)
         USE ROSCO_Types, ONLY : LocalVariables
+        Use ZeroMQInterface
 
         REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
-        
+
         ! Load variables from calling program (See Appendix A of Bladed User's Guide):
         LocalVar%iStatus = NINT(avrSWAP(1))
         LocalVar%Time = avrSWAP(2)
@@ -84,11 +85,15 @@ CONTAINS
             LocalVar%BlPitch(3) = LocalVar%PitCom(3)      
         ENDIF
 
+        PRINT *,' Calling UpdateZeroMQ...'
+        CALL UpdateZeroMQ()
+        PRINT *,' Coming out of ZeroMQ client interface...'
+
     END SUBROUTINE ReadAvrSWAP    
 ! -----------------------------------------------------------------------------------
     ! Define parameters for control actions
     SUBROUTINE SetParameters(avrSWAP, accINFILE, size_avcMSG, CntrPar, LocalVar, objInst, PerfData, ErrVar)
-                
+
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData, ErrorVariables
         
         INTEGER(4), INTENT(IN) :: size_avcMSG
