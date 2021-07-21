@@ -4,13 +4,15 @@ module ZeroMQInterface
     ! 
 
 CONTAINS
-    SUBROUTINE UpdateZeroMQ(LocalVar, zmq_address, setpoints)
-        USE ROSCO_Types, ONLY : LocalVariables
+    SUBROUTINE UpdateZeroMQ(LocalVar, ZMQVar)
+        USE ROSCO_Types, ONLY : LocalVariables, ZMQ_Variables
         IMPLICIT NONE
         TYPE(LocalVariables), INTENT(IN) :: LocalVar
-        character(256) :: zmq_address
-        real(C_DOUBLE), dimension(0:4) :: setpoints
-        real(C_DOUBLE), dimension(0:14) :: turbine_measurements
+        TYPE(ZMQ_Variables), INTENT(IN)  :: ZMQVar
+
+        character(256) :: c_zmq_address
+        real(C_DOUBLE) :: setpoints(5)
+        real(C_DOUBLE) :: turbine_measurements(15)
 
         ! C interface with ZeroMQ client
         interface
@@ -18,7 +20,8 @@ CONTAINS
                 import :: C_CHAR, C_DOUBLE
                 implicit none
                 character(C_CHAR), intent(out) :: zmq_address(*)
-                real(C_DOUBLE) :: measurements(3), setpoints(3)
+                real(C_DOUBLE) :: measurements(15), 
+                real(C_DOUBLE) :: setpoints(5)
             end subroutine zmq_client
         end interface
 
@@ -40,14 +43,19 @@ CONTAINS
         turbine_measurements(14) = LocalVar%Azimuth
         ! ... add nacelle position...?
 
+        ! Define the ZeroMQ IP address and port
+        c_zmq_address = C_CHAR_//zmq_adddress//C_NULL_CHAR
+
         ! zmq_address = C_CHAR_"tcp://localhost:5555"//C_NULL_CHAR
-        call zmq_client(zmq_address, turbine_measurements, setpoints)
+        call zmq_client(c_zmq_address, turbine_measurements, setpoints)
 
         ! write (*,*) "ZeroMQInterface: torque setpoint from ssc: ", setpoints(0)
         ! write (*,*) "ZeroMQInterface: yaw setpoint from ssc: ", setpoints(1)
         ! write (*,*) "ZeroMQInterface: pitch 1 setpoint from ssc: ", setpoints(2)
         ! write (*,*) "ZeroMQInterface: pitch 2 setpoint from ssc: ", setpoints(3)
         ! write (*,*) "ZeroMQInterface: pitch 3 setpoint from ssc: ", setpoints(4)
+
+        ZMQVar%Yaw_Offset = setpoints(1)
 
     END SUBROUTINE UpdateZeroMQ
 end module ZeroMQInterface

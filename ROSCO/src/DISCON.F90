@@ -55,6 +55,7 @@ TYPE(ObjectInstances), SAVE           :: objInst
 TYPE(PerformanceData), SAVE           :: PerfData
 TYPE(DebugVariables), SAVE            :: DebugVar
 TYPE(ErrorVariables), SAVE            :: ErrVar
+TYPE(ZMQ_Variables), SAVE             :: ZMQVar
 
 CHARACTER(*), PARAMETER               :: RoutineName = 'ROSCO'
 
@@ -63,7 +64,7 @@ RootName = TRANSFER(avcOUTNAME, RootName)
 ! Main control calculations
 !------------------------------------------------------------------------------------------------------------------------------
 ! Read avrSWAP array into derived types/variables
-CALL ReadAvrSWAP(avrSWAP, LocalVar)
+CALL ReadAvrSWAP(avrSWAP, LocalVar, ZMQVar)
 
 ! Set Control Parameters
 CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, ErrVar)

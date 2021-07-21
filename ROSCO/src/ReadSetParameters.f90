@@ -48,14 +48,14 @@ MODULE ReadSetParameters
 CONTAINS
  ! -----------------------------------------------------------------------------------
     ! Read avrSWAP array passed from ServoDyn    
-    SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar)
-        USE ROSCO_Types, ONLY : LocalVariables
+    SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar, ZMQVar)
+        USE ROSCO_Types, ONLY : LocalVariables, ZMQ_Variables
         Use ZeroMQInterface
 
         REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
+        TYPE(ZMQ_Variables), INTENT(INOUT) :: ZMQVar
 
-        character(256) :: zmq_address
         real(C_DOUBLE), dimension(0:4) :: setpoints
 
         ! Load variables from calling program (See Appendix A of Bladed User's Guide):
@@ -91,11 +91,8 @@ CONTAINS
         PRINT *,' Calling UpdateZeroMQ...'
         ! Collect measurements to be sent to ZeroMQ server
 
-        ! Define the ZeroMQ IP address and port
-        zmq_address = C_CHAR_"tcp://localhost:5555"//C_NULL_CHAR
-
         ! Call ZeroMQ function and exchange information
-        CALL UpdateZeroMQ(LocalVar, zmq_address, setpoints)
+        CALL UpdateZeroMQ(LocalVar, ZMQVar, setpoints)
         write (*,*) "ZeroMQInterface: torque setpoint from ssc: ", setpoints(0)
         write (*,*) "ZeroMQInterface: yaw setpoint from ssc: ", setpoints(1)
         write (*,*) "ZeroMQInterface: pitch 1 setpoint from ssc: ", setpoints(2)
