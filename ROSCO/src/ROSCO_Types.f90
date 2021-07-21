@@ -234,6 +234,11 @@ TYPE, PUBLIC :: PerformanceData
     REAL(8), DIMENSION(:,:), ALLOCATABLE    :: Cq_mat
 END TYPE PerformanceData
 
+TYPE, PUBLIC :: ZMQ_Variables
+    REAL(8), DIMENSION(:), ALLOCATABLE  :: zmq_address
+    REAL(8), DIMENSION(:), ALLOCATABLE  :: Yaw_Offset
+END TYPE ZMQ_Variables
+
 TYPE, PUBLIC :: DebugVariables
     REAL(8)                             :: WE_Cp                        ! Cp that WSE uses to determine aerodynamic torque, for debug purposes [-]
     REAL(8)                             :: WE_b                         ! Pitch that WSE uses to determine aerodynamic torque, for debug purposes [-]
