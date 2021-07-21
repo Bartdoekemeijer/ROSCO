@@ -97,6 +97,16 @@ class Controller():
                 self.ptfm_freq  = controller_params['ptfm_freq']
             except:
                 raise Exception('ROSCO_toolbox:controller: twr_freq and ptfm_freq must be set if Fl_Mode > 0')
+
+            # Kp_float direct setting
+            if 'Kp_float' in controller_params:
+                self.Kp_float = controller_params['Kp_float']
+            else:
+                self.Kp_float = 0
+
+            self.tune_Fl = controller_params['tune_Fl']
+
+
         else:
             self.twr_freq   = 0
             self.ptfm_freq  = 0
@@ -227,9 +237,15 @@ class Controller():
         B_tau = B_tau * np.ones(len(v))
 
         # Resample omega_ and zeta_pc at above rated wind speeds
-        if len(self.U_pc) == len(self.omega_pc) == len(self.zeta_pc):
+        if self.U_pc \
+            and isinstance(self.omega_pc, (list,np.ndarray)) \
+            and isinstance(self.zeta_pc, (list,np.ndarray)) \
+            and len(self.U_pc) == len(self.omega_pc) == len(self.zeta_pc):
             self.omega_pc_U = multi_sigma(v_above_rated[1:],self.U_pc,self.omega_pc)
             self.zeta_pc_U  = multi_sigma(v_above_rated[1:],self.U_pc,self.zeta_pc)
+        elif isinstance(self.omega_pc, float) and isinstance(self.zeta_pc, float):
+            self.omega_pc_U = self.omega_pc * np.ones(len(v_above_rated[1:]))
+            self.zeta_pc_U = self.zeta_pc * np.ones(len(v_above_rated[1:]))
         else:
             raise Exception('ROSCO_toolbox: The lengths of U_pc, omega_pc, and zeta_pc must be equal')
 
@@ -290,15 +306,17 @@ class Controller():
 
         # --- Floating feedback term ---
         if self.Fl_Mode == 1: # Floating feedback
-            Kp_float = (dtau_dv/dtau_dbeta) * turbine.TowerHt * Ng 
-            f_kp     = interpolate.interp1d(v,Kp_float)
-            self.Kp_float = f_kp(turbine.v_rated * (1.05))   # get Kp at v_rated + 0.5 m/s
-            # Turn on the notch filter if floating
-            self.F_NotchType = 2
-            
-            # And check for .yaml input inconsistencies
-            if self.twr_freq == 0.0 or self.ptfm_freq == 0.0:
-                print('WARNING: twr_freq and ptfm_freq should be defined for floating turbine control!!')
+            # If we haven't set Kp_float as a control parameter
+            if self.tune_Fl:
+                Kp_float = (dtau_dv/dtau_dbeta) * turbine.TowerHt * Ng 
+                f_kp     = interpolate.interp1d(v,Kp_float)
+                self.Kp_float = f_kp(turbine.v_rated * (1.05))   # get Kp at v_rated + 0.5 m/s
+                # Turn on the notch filter if floating
+                self.F_NotchType = 2
+                
+                # And check for .yaml input inconsistencies
+                if self.twr_freq == 0.0 or self.ptfm_freq == 0.0:
+                    print('WARNING: twr_freq and ptfm_freq should be defined for floating turbine control!!')
         else:
             self.Kp_float = 0.0
 

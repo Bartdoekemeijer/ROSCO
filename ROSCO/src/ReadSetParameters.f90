@@ -50,10 +50,15 @@ CONTAINS
     ! Read avrSWAP array passed from ServoDyn    
     SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar)
         USE ROSCO_Types, ONLY : LocalVariables
+        Use ZeroMQInterface
 
         REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
-        
+
+        character(256) :: zmq_address
+        real(C_DOUBLE), dimension(0:14) :: turbine_measurements
+        real(C_DOUBLE), dimension(0:4) :: setpoints
+
         ! Load variables from calling program (See Appendix A of Bladed User's Guide):
         LocalVar%iStatus = NINT(avrSWAP(1))
         LocalVar%Time = avrSWAP(2)
@@ -84,11 +89,42 @@ CONTAINS
             LocalVar%BlPitch(3) = LocalVar%PitCom(3)      
         ENDIF
 
+        PRINT *,' Calling UpdateZeroMQ...'
+        ! Collect measurements to be sent to ZeroMQ server
+        turbine_measurements(0) = LocalVar%iStatus
+        turbine_measurements(1) = LocalVar%Time
+        turbine_measurements(2) = LocalVar%VS_MechGenPwr
+        turbine_measurements(3) = LocalVar%VS_GenPwr
+        turbine_measurements(4) = LocalVar%GenSpeed
+        turbine_measurements(5) = LocalVar%RotSpeed
+        turbine_measurements(6) = LocalVar%GenTqMeas
+        turbine_measurements(7) = LocalVar%Y_M
+        turbine_measurements(8) = LocalVar%HorWindV
+        turbine_measurements(9) = LocalVar%rootMOOP(1)
+        turbine_measurements(10) = LocalVar%rootMOOP(2)
+        turbine_measurements(11) = LocalVar%rootMOOP(3)
+        turbine_measurements(12) = LocalVar%FA_Acc
+        turbine_measurements(13) = LocalVar%NacIMU_FA_Acc
+        turbine_measurements(14) = LocalVar%Azimuth
+
+        ! Define the ZeroMQ IP address and port
+        zmq_address = C_CHAR_"tcp://localhost:5555"//C_NULL_CHAR
+
+        ! Call ZeroMQ function and exchange information
+        CALL UpdateZeroMQ(turbine_measurements, zmq_address, setpoints)
+        write (*,*) "ZeroMQInterface: torque setpoint from ssc: ", setpoints(0)
+        write (*,*) "ZeroMQInterface: yaw setpoint from ssc: ", setpoints(1)
+        write (*,*) "ZeroMQInterface: pitch 1 setpoint from ssc: ", setpoints(2)
+        write (*,*) "ZeroMQInterface: pitch 2 setpoint from ssc: ", setpoints(3)
+        write (*,*) "ZeroMQInterface: pitch 3 setpoint from ssc: ", setpoints(4)
+
+        PRINT *,' Coming out of ZeroMQ client interface...'
+
     END SUBROUTINE ReadAvrSWAP    
 ! -----------------------------------------------------------------------------------
     ! Define parameters for control actions
     SUBROUTINE SetParameters(avrSWAP, accINFILE, size_avcMSG, CntrPar, LocalVar, objInst, PerfData, ErrVar)
-                
+
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData, ErrorVariables
         
         INTEGER(4), INTENT(IN) :: size_avcMSG
