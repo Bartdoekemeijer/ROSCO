@@ -55,7 +55,7 @@ TYPE(ObjectInstances), SAVE           :: objInst
 TYPE(PerformanceData), SAVE           :: PerfData
 TYPE(DebugVariables), SAVE            :: DebugVar
 TYPE(ErrorVariables), SAVE            :: ErrVar
-TYPE(ZMQ_Variables), SAVE             :: ZMQVar
+TYPE(ZMQ_Variables), SAVE             :: zmqVar
 
 CHARACTER(*), PARAMETER               :: RoutineName = 'ROSCO'
 
@@ -64,10 +64,10 @@ RootName = TRANSFER(avcOUTNAME, RootName)
 ! Main control calculations
 !------------------------------------------------------------------------------------------------------------------------------
 ! Read avrSWAP array into derived types/variables
-CALL ReadAvrSWAP(avrSWAP, LocalVar, ZMQVar)
+CALL ReadAvrSWAP(avrSWAP, LocalVar, zmqVar)
 
 ! Set Control Parameters
-CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, ErrVar)
+CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst, PerfData, zmqVar, ErrVar)
 
 ! Filter signals
 CALL PreFilterMeasuredSignals(CntrPar, LocalVar, objInst)

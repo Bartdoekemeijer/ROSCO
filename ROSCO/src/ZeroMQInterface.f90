@@ -4,11 +4,11 @@ module ZeroMQInterface
     ! 
 
 CONTAINS
-    SUBROUTINE UpdateZeroMQ(LocalVar, ZMQVar)
+    SUBROUTINE UpdateZeroMQ(LocalVar, zmqVar)
         USE ROSCO_Types, ONLY : LocalVariables, ZMQ_Variables
         IMPLICIT NONE
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
-        TYPE(ZMQ_Variables), INTENT(INOUT)  :: ZMQVar
+        TYPE(ZMQ_Variables), INTENT(INOUT)  :: zmqVar
 
         ! character(:) :: c_zmq_address
         real(C_DOUBLE) :: setpoints(5)
@@ -44,10 +44,10 @@ CONTAINS
         ! ... add nacelle position...?
 
         ! Define the ZeroMQ IP address and port
-        ! c_zmq_address = ZMQVar%zmq_address
+        ! c_zmq_address = zmqVar%zmq_address
 
         ! zmq_address = C_CHAR_"tcp://localhost:5555"//C_NULL_CHAR
-        call zmq_client(ZMQVar%zmq_address, turbine_measurements, setpoints)
+        call zmq_client(zmqVar%ZMQ_CommAddress, turbine_measurements, setpoints)
 
         ! write (*,*) "ZeroMQInterface: torque setpoint from ssc: ", setpoints(0)
         ! write (*,*) "ZeroMQInterface: yaw setpoint from ssc: ", setpoints(1)
@@ -55,7 +55,7 @@ CONTAINS
         ! write (*,*) "ZeroMQInterface: pitch 2 setpoint from ssc: ", setpoints(3)
         ! write (*,*) "ZeroMQInterface: pitch 3 setpoint from ssc: ", setpoints(4)
 
-        ZMQVar%Yaw_Offset = setpoints(1)
+        zmqVar%Yaw_Offset = setpoints(1)
 
     END SUBROUTINE UpdateZeroMQ
 end module ZeroMQInterface

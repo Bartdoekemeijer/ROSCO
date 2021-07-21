@@ -48,13 +48,13 @@ MODULE ReadSetParameters
 CONTAINS
  ! -----------------------------------------------------------------------------------
     ! Read avrSWAP array passed from ServoDyn    
-    SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar, ZMQVar)
+    SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar, zmqVar)
         USE ROSCO_Types, ONLY : LocalVariables, ZMQ_Variables
         Use ZeroMQInterface
 
         REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
-        TYPE(ZMQ_Variables), INTENT(INOUT) :: ZMQVar
+        TYPE(ZMQ_Variables), INTENT(INOUT) :: zmqVar
 
         real(C_DOUBLE), dimension(0:4) :: setpoints
 
@@ -92,7 +92,7 @@ CONTAINS
         ! Collect measurements to be sent to ZeroMQ server
 
         ! Call ZeroMQ function and exchange information
-        CALL UpdateZeroMQ(LocalVar, ZMQVar)
+        CALL UpdateZeroMQ(LocalVar, zmqVar)
         write (*,*) "ZeroMQInterface: torque setpoint from ssc: ", setpoints(0)
         write (*,*) "ZeroMQInterface: yaw setpoint from ssc: ", setpoints(1)
         write (*,*) "ZeroMQInterface: pitch 1 setpoint from ssc: ", setpoints(2)
@@ -104,15 +104,16 @@ CONTAINS
     END SUBROUTINE ReadAvrSWAP    
 ! -----------------------------------------------------------------------------------
     ! Define parameters for control actions
-    SUBROUTINE SetParameters(avrSWAP, accINFILE, size_avcMSG, CntrPar, LocalVar, objInst, PerfData, ErrVar)
+    SUBROUTINE SetParameters(avrSWAP, accINFILE, size_avcMSG, CntrPar, LocalVar, objInst, PerfData, zmqVar, ErrVar)
 
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData, ErrorVariables
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, PerformanceData, ErrorVariables, ZMQ_Variables
         
         INTEGER(4), INTENT(IN) :: size_avcMSG
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
         TYPE(ObjectInstances), INTENT(INOUT)    :: objInst
         TYPE(PerformanceData), INTENT(INOUT)    :: PerfData
+        TYPE(ZMQ_Variables), INTENT(INOUT)      :: zmqVar
         TYPE(ErrorVariables), INTENT(INOUT)     :: ErrVar
 
         REAL(C_FLOAT), INTENT(INOUT)            :: avrSWAP(*)          ! The swap array, used to pass data to, and receive data from, the DLL controller.
@@ -167,7 +168,7 @@ CONTAINS
                     '                            Delft University of Technology, The Netherlands   '//NEW_LINE('A')// &
                     '------------------------------------------------------------------------------'
 
-            CALL ReadControlParameterFileSub(CntrPar, accINFILE, NINT(avrSWAP(50)),ErrVar)
+            CALL ReadControlParameterFileSub(CntrPar, zmqVar, accINFILE, NINT(avrSWAP(50)),ErrVar)
             ! If there's been an file reading error, don't continue
             ! Add RoutineName to error message
             IF (ErrVar%aviFAIL < 0) THEN
@@ -215,15 +216,16 @@ CONTAINS
     END SUBROUTINE SetParameters
     ! -----------------------------------------------------------------------------------
     ! Read all constant control parameters from DISCON.IN parameter file
-    SUBROUTINE ReadControlParameterFileSub(CntrPar, accINFILE, accINFILE_size,ErrVar)!, accINFILE_size)
+    SUBROUTINE ReadControlParameterFileSub(CntrPar, zmqVar, accINFILE, accINFILE_size, ErrVar)!, accINFILE_size)
         USE, INTRINSIC :: ISO_C_Binding
-        USE ROSCO_Types, ONLY : ControlParameters, ErrorVariables
+        USE ROSCO_Types, ONLY : ControlParameters, ErrorVariables, ZMQ_Variables
 
         INTEGER(4)                                      :: accINFILE_size               ! size of DISCON input filename
         CHARACTER(accINFILE_size),  INTENT(IN   )       :: accINFILE(accINFILE_size)    ! DISCON input filename
         INTEGER(4), PARAMETER                           :: UnControllerParameters = 89  ! Unit number to open file
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar                      ! Control parameter type
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar                      ! Control parameter type
+        TYPE(ZMQ_Variables),       INTENT(INOUT)       :: zmqVar                      ! Control parameter type
 
         INTEGER(4)                                      :: CurLine 
 
@@ -385,6 +387,12 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_Kp',accINFILE(1),CntrPar%Flp_Kp,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_Ki',accINFILE(1),CntrPar%Flp_Ki,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Flp_MaxPit',accINFILE(1),CntrPar%Flp_MaxPit,ErrVar)
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+
+        !------------ ZeroMQ ------------
+        CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+        CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_CommAddress',accINFILE(1), zmqVar%ZMQ_CommAddress,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_YawCntrl',accINFILE(1), CntrPar%ZMQ_YawCntrl,ErrVar)
         ! END OF INPUT FILE    
 
         ! Close Input File

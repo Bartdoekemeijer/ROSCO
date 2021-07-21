@@ -135,6 +135,8 @@ TYPE, PUBLIC :: ControlParameters
     REAL(8)                             :: VS_MaxOMTq                   ! Maximum torque at the end of the below-rated region 2, [Nm]
     REAL(8)                             :: VS_MinOMTq                   ! Minimum torque at the beginning of the below-rated region 2, [Nm]
 
+    ! ZeroMQ Flags
+    INTEGER(4)                          :: ZMQ_YawCntrl                 ! Flag to use zeromq yaw offset signal
 END TYPE ControlParameters
 
 TYPE, PUBLIC :: LocalVariables
@@ -235,7 +237,7 @@ TYPE, PUBLIC :: PerformanceData
 END TYPE PerformanceData
 
 TYPE, PUBLIC :: ZMQ_Variables
-    CHARACTER(:), ALLOCATABLE  :: zmq_address
+    CHARACTER(:), ALLOCATABLE           :: ZMQ_CommAddress
     REAL(8), DIMENSION(:), ALLOCATABLE  :: Yaw_Offset
 END TYPE ZMQ_Variables
 
