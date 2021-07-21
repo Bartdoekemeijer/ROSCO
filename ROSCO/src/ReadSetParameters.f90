@@ -268,7 +268,8 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'F_LPFDamping',accINFILE(1),CntrPar%F_LPFDamping,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'F_NotchCornerFreq',accINFILE(1),CntrPar%F_NotchCornerFreq,ErrVar)
         CALL ParseAry(UnControllerParameters, CurLine, 'F_NotchBetaNumDen', CntrPar%F_NotchBetaNumDen, 2, accINFILE(1), ErrVar )
-        CALL ParseInput(UnControllerParameters,CurLine,'F_SSCornerFreq',accINFILE(1),CntrPar%F_SSCornerFreq,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'F_SSCornerFreq',accINFILE(1),CntrPar%F_SSCornerFreq, ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'F_YawErr',accINFILE(1),CntrPar%F_YawErr, ErrVar)
         CALL ParseAry(UnControllerParameters, CurLine, 'F_FlCornerFreq', CntrPar%F_FlCornerFreq, 2, accINFILE(1), ErrVar )
         CALL ParseAry(UnControllerParameters, CurLine, 'F_FlpCornerFreq', CntrPar%F_FlpCornerFreq, 2, accINFILE(1), ErrVar )
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
@@ -340,17 +341,16 @@ CONTAINS
 
         !-------------- YAW CONTROLLER CONSTANTS -----------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_ErrThresh',accINFILE(1),CntrPar%Y_ErrThresh,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_uSwitch',accINFILE(1),CntrPar%Y_uSwitch,ErrVar)
+        CALL ParseAry(UnControllerParameters, CurLine, 'Y_ErrThresh', CntrPar%Y_ErrThresh, 2, accINFILE(1), ErrVar )
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_Rate',accINFILE(1),CntrPar%Y_Rate,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_MErrSet',accINFILE(1),CntrPar%Y_MErrSet,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_IntSat',accINFILE(1),CntrPar%Y_IPC_IntSat,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_n',accINFILE(1),CntrPar%Y_IPC_n,ErrVar)
-        CALL ParseAry(UnControllerParameters, CurLine, 'Y_IPC_KP', CntrPar%Y_IPC_KP, CntrPar%Y_IPC_n, accINFILE(1), ErrVar )
-        CALL ParseAry(UnControllerParameters, CurLine, 'Y_IPC_KI', CntrPar%Y_IPC_KI, CntrPar%Y_IPC_n, accINFILE(1), ErrVar )
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_KP',accINFILE(1),CntrPar%Y_IPC_KP,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_KI',accINFILE(1),CntrPar%Y_IPC_KI,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_omegaLP',accINFILE(1),CntrPar%Y_IPC_omegaLP,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_zetaLP',accINFILE(1),CntrPar%Y_IPC_zetaLP,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_MErrSet',accINFILE(1),CntrPar%Y_MErrSet,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_omegaLPFast',accINFILE(1),CntrPar%Y_omegaLPFast,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_omegaLPSlow',accINFILE(1),CntrPar%Y_omegaLPSlow,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_Rate',accINFILE(1),CntrPar%Y_Rate,ErrVar)
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !------------ FORE-AFT TOWER DAMPER CONSTANTS ------------
