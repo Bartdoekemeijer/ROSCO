@@ -596,21 +596,17 @@ CONTAINS
         CHARACTER(10)                               :: DebugOutStr1,  DebugOutStr2, DebugOutStr3, DebugOutStr4, DebugOutStr5, &
                                                          DebugOutStr6, DebugOutStr7, DebugOutStr8, DebugOutStr9, DebugOutStr10, &
                                                          DebugOutStr11, DebugOutStr12, DebugOutStr13, DebugOutStr14, DebugOutStr15, & 
-                                                         DebugOutStr16, DebugOutStr17, DebugOutStr18, DebugOutStr19, DebugOutStr20, &    
-                                                         DebugOutStr21, DebugOutStr22, DebugOutStr23, DebugOutStr24, DebugOutStr25, &
-                                                         DebugOutStr26, DebugOutStr27, DebugOutStr28, DebugOutStr29, DebugOutStr30                                                        
+                                                         DebugOutStr16, DebugOutStr17, DebugOutStr18, DebugOutStr19, DebugOutStr20                                                           
         CHARACTER(10)                               :: DebugOutUni1,  DebugOutUni2, DebugOutUni3, DebugOutUni4, DebugOutUni5, &
                                                          DebugOutUni6, DebugOutUni7, DebugOutUni8, DebugOutUni9, DebugOutUni10, &
                                                          DebugOutUni11, DebugOutUni12, DebugOutUni13, DebugOutUni14, DebugOutUni15, & 
-                                                         DebugOutUni16, DebugOutUni17, DebugOutUni18, DebugOutUni19, DebugOutUni20, &
-                                                         DebugOutUni21, DebugOutUni22, DebugOutUni23, DebugOutUni24, DebugOutUni25, & 
-                                                         DebugOutUni26, DebugOutUni27, DebugOutUni28, DebugOutUni29, DebugOutUni30
+                                                         DebugOutUni16, DebugOutUni17, DebugOutUni18, DebugOutUni19, DebugOutUni20 
         CHARACTER(10), ALLOCATABLE                  :: DebugOutStrings(:), DebugOutUnits(:)
         REAL(8), ALLOCATABLE                        :: DebugOutData(:)
 
         ! Set up Debug Strings and Data
         ! Note that Debug strings have 10 character limit
-        nDebugOuts = 30
+        nDebugOuts = 18
         ALLOCATE(DebugOutData(nDebugOuts))
         !                 Header                            Unit                                Variable
         ! Filters
@@ -632,21 +628,8 @@ CONTAINS
         DebugOutStr14  = 'WE_w';         DebugOutUni14  = '(rad/s)';   DebugOutData(14)  = DebugVar%WE_w
         DebugOutStr15  = 'WE_Vm';        DebugOutUni15  = '(m/s)';     DebugOutData(15)  = DebugVar%WE_Vm
         DebugOutStr16  = 'WE_Vt';        DebugOutUni16  = '(m/s)';     DebugOutData(16)  = DebugVar%WE_Vt
-        DebugOutStr17  = 'WE_Cp';        DebugOutUni17  = '(-)';       DebugOutData(17)  = DebugVar%WE_Cp
-        DebugOutStr18  = 'WE_lambda';    DebugOutUni18  = '(rad/s)';   DebugOutData(18)  = DebugVar%WE_lambda
-        DebugOutStr19  = 'WE_F12';       DebugOutUni19  = '(-)';       DebugOutData(19)  = DebugVar%WE_F12
-        DebugOutStr20  = 'WE_F13';       DebugOutUni20  = '(-)';       DebugOutData(20)  = DebugVar%WE_F13
-        ! Yaw
-        DebugOutStr21   = 'YawRateCom';    DebugOutUni21 = '(deg)';      DebugOutData(21)  = DebugVar%YawRateCom
-        DebugOutStr22   = 'WindDir';       DebugOutUni22 = '(deg)';      DebugOutData(22)  = DebugVar%WindDir
-        DebugOutStr23   = 'WindDir_n';     DebugOutUni23 = '(deg)';      DebugOutData(23)  = DebugVar%WindDir_n
-        DebugOutStr24   = 'WindDirF';      DebugOutUni24 = '(deg)';      DebugOutData(24)  = DebugVar%WindDirF
-        DebugOutStr25   = 'NacVane';       DebugOutUni25 = '(deg)';      DebugOutData(25)  = DebugVar%NacVane
-        DebugOutStr26   = 'NacVaneOffset'; DebugOutUni26 = '(deg)';      DebugOutData(26)  = DebugVar%NacVaneOffset
-        DebugOutStr27   = 'Yaw_err';       DebugOutUni27 = '(deg)';      DebugOutData(27)  = DebugVar%Yaw_err
-        DebugOutStr28   = 'Nac_YawNorth';  DebugOutUni28 = '(deg)';      DebugOutData(28)  = LocalVar%Nac_YawNorth
-        DebugOutStr29   = 'Y_Angle';       DebugOutUni29 = '(deg)';      DebugOutData(29)  = LocalVar%Y_Angle
-        DebugOutStr30   = 'YawState';      DebugOutUni30 = '(deg)';      DebugOutData(30)  = DebugVar%YawState
+        DebugOutStr17  = 'WE_lambda';    DebugOutUni17  = '(-)';   DebugOutData(17)  = DebugVar%WE_lambda
+        DebugOutStr18  = 'WE_Cp';        DebugOutUni18  = '(-)';       DebugOutData(18)  = DebugVar%WE_Cp
 
         Allocate(DebugOutStrings(nDebugOuts))
         Allocate(DebugOutUnits(nDebugOuts))
@@ -654,19 +637,12 @@ CONTAINS
                                                 DebugOutStr5, DebugOutStr6, DebugOutStr7, DebugOutStr8, &
                                                 DebugOutStr9, DebugOutStr10, DebugOutStr11, DebugOutStr12, &
                                                 DebugOutStr13, DebugOutStr14, DebugOutStr15, DebugOutStr16, &
-                                                DebugOutStr17, DebugOutStr18, DebugOutStr19, DebugOutStr20, &
-                                                DebugOutStr21, DebugOutStr22, DebugOutStr23, DebugOutStr24, &
-                                                DebugOutStr25, DebugOutStr26, DebugOutStr27, DebugOutStr28, &
-                                                DebugOutStr29, DebugOutStr30]
-
+                                                DebugOutStr17, DebugOutStr18]
         DebugOutUnits =     [CHARACTER(10)  :: DebugOutUni1, DebugOutUni2, DebugOutUni3, DebugOutUni4, &
                                                 DebugOutUni5, DebugOutUni6, DebugOutUni7, DebugOutUni8, &
                                                 DebugOutUni9, DebugOutUni10, DebugOutUni11, DebugOutUni12, &
                                                 DebugOutUni13, DebugOutUni14, DebugOutUni15, DebugOutUni1, &
-                                                DebugOutUni17, DebugOutUni18, DebugOutUni19, DebugOutUni20, &
-                                                DebugOutUni21, DebugOutUni22, DebugOutUni23, DebugOutUni24, &
-                                                DebugOutUni25, DebugOutUni26, DebugOutUni27, DebugOutUni28, &
-                                                DebugOutUni29, DebugOutUni30]
+                                                DebugOutUni17, DebugOutUni18]
         
         ! Initialize debug file
         IF (LocalVar%iStatus == 0)  THEN  ! .TRUE. if we're on the first call to the DLL
@@ -680,9 +656,7 @@ CONTAINS
                 WRITE (UnDb,'(99(a10,TR5:))') '(sec)',  DebugOutUnits
             END IF
             
-
-
-            IF (CntrPar%LoggingLevel > 1) THEN
+            IF (CntrPar%LoggingLevel > 1) THEN 
                 OPEN(unit=UnDb2, FILE='DEBUG2.dbg')
                 WRITE(UnDb2,'(/////)')
                 WRITE(UnDb2,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1,85)
@@ -691,16 +665,11 @@ CONTAINS
         ELSE
             ! Print simulation status, every 10 seconds
             IF (MODULO(LocalVar%Time, 10.0) == 0) THEN
-                IF (CntrPar%Y_ControlMode > 0) THEN
-                    WRITE(*, 99) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0, LocalVar%WE_Vw,  LocalVar%Y_Angle
-                    99 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s, YawAngle: ',f5.1, ' deg')
-                ELSE
-                    WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0, LocalVar%WE_Vw ! LocalVar%Time !/1000.0
-                    100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')
-                ENDIF
+                WRITE(*, 100) LocalVar%GenSpeedF*RPS2RPM, LocalVar%BlPitch(1)*R2D, avrSWAP(15)/1000.0, LocalVar%WE_Vw ! LocalVar%Time !/1000.0
+                100 FORMAT('Generator speed: ', f6.1, ' RPM, Pitch angle: ', f5.1, ' deg, Power: ', f7.1, ' kW, Est. wind Speed: ', f5.1, ' m/s')
             END IF
             
-        END IF
+        ENDIF
 
         ! Write debug files
         IF (CntrPar%LoggingLevel > 0) THEN
