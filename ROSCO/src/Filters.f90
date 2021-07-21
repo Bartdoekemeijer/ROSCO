@@ -70,6 +70,7 @@ CONTAINS
     END FUNCTION LPFilter
 !-------------------------------------------------------------------------------------------------------------------------------
     REAL FUNCTION SecLPFilter(InputSignal, DT, CornerFreq, Damp, iStatus, reset, inst)
+        IMPLICIT NONE
     ! Discrete time Low-Pass Filter of the form:
     !                               Continuous Time Form:   H(s) = CornerFreq^2/(s^2 + 2*CornerFreq*Damp*s + CornerFreq^2)
     !                               Discrete Time From:     H(z) = (b2*z^2 + b1*z + b0) / (a2*z^2 + a1*z + a0)
@@ -250,8 +251,7 @@ CONTAINS
     END FUNCTION NotchFilter
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE PreFilterMeasuredSignals(CntrPar, LocalVar, objInst)
-    ! Prefilter measured wind turbine signals to separate the filtering from the actual control actions
-
+    ! Prefilter measured wind turbine signals to separate the filtering from the actual control actions      
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
         
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar

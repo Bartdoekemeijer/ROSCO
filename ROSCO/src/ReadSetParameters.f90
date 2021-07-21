@@ -92,7 +92,7 @@ CONTAINS
         ! Collect measurements to be sent to ZeroMQ server
 
         ! Call ZeroMQ function and exchange information
-        CALL UpdateZeroMQ(LocalVar, ZMQVar, setpoints)
+        CALL UpdateZeroMQ(LocalVar, ZMQVar)
         write (*,*) "ZeroMQInterface: torque setpoint from ssc: ", setpoints(0)
         write (*,*) "ZeroMQInterface: yaw setpoint from ssc: ", setpoints(1)
         write (*,*) "ZeroMQInterface: pitch 1 setpoint from ssc: ", setpoints(2)
@@ -347,8 +347,8 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'Y_MErrSet',accINFILE(1),CntrPar%Y_MErrSet,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_IntSat',accINFILE(1),CntrPar%Y_IPC_IntSat,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_n',accINFILE(1),CntrPar%Y_IPC_n,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_KP',accINFILE(1),CntrPar%Y_IPC_KP,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_KI',accINFILE(1),CntrPar%Y_IPC_KI,ErrVar)
+        CALL ParseAry(UnControllerParameters,CurLine,'Y_IPC_KP', CntrPar%Y_IPC_KP, 2, accINFILE(1), ErrVar)
+        CALL ParseAry(UnControllerParameters,CurLine,'Y_IPC_KI', CntrPar%Y_IPC_KI, 2, accINFILE(1), ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_omegaLP',accINFILE(1),CntrPar%Y_IPC_omegaLP,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_zetaLP',accINFILE(1),CntrPar%Y_IPC_zetaLP,ErrVar)
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
@@ -840,7 +840,7 @@ CONTAINS
                 ErrVar%ErrMsg  = 'Y_IPC_zetaLP must be greater than zero.'
             ENDIF
             
-            IF (CntrPar%Y_ErrThresh <= 0.0)  THEN
+            IF (CntrPar%Y_ErrThresh(1) <= 0.0)  THEN
                 ErrVar%aviFAIL = -1
                 ErrVar%ErrMsg  = 'Y_ErrThresh must be greater than zero.'
             ENDIF
@@ -850,15 +850,6 @@ CONTAINS
                 ErrVar%ErrMsg  = 'CntrPar%Y_Rate must be greater than zero.'
             ENDIF
             
-            IF (CntrPar%Y_omegaLPFast <= 0.0)  THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'Y_omegaLPFast must be greater than zero.'
-            ENDIF
-            
-            IF (CntrPar%Y_omegaLPSlow <= 0.0)  THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'Y_omegaLPSlow must be greater than zero.'
-            ENDIF
         ENDIF
 
         !------- MINIMUM PITCH SATURATION -------------------------------------------

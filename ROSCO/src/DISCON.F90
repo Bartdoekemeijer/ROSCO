@@ -71,7 +71,7 @@ CALL SetParameters(avrSWAP, accINFILE, SIZE(avcMSG), CntrPar, LocalVar, objInst,
 
 ! Filter signals
 CALL PreFilterMeasuredSignals(CntrPar, LocalVar, objInst)
-CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar)
+CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
 
 IF ((LocalVar%iStatus >= 0) .AND. (ErrVar%aviFAIL >= 0))  THEN  ! Only compute control calculations if no error has occurred and we are not on the last time step
     CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
@@ -81,7 +81,7 @@ IF ((LocalVar%iStatus >= 0) .AND. (ErrVar%aviFAIL >= 0))  THEN  ! Only compute c
     CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
     CALL VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst)
     CALL PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
-    CALL YawRateControl(avrSWAP, CntrPar, LocalVar, objInst)
+    CALL YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
     CALL FlapControl(avrSWAP, CntrPar, LocalVar, objInst)
     CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, SIZE(avcOUTNAME))
 END IF
