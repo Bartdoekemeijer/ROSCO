@@ -237,8 +237,9 @@ TYPE, PUBLIC :: PerformanceData
 END TYPE PerformanceData
 
 TYPE, PUBLIC :: ZMQ_Variables
-    CHARACTER(:), ALLOCATABLE           :: ZMQ_CommAddress
-    REAL(8), DIMENSION(:), ALLOCATABLE  :: Yaw_Offset
+	CHARACTER(256)                        :: ZMQ_CommAddress
+	REAL(8)                               :: Yaw_Offset
+    INTEGER(4)                            :: ZMQ_YawCntrl
 END TYPE ZMQ_Variables
 
 TYPE, PUBLIC :: DebugVariables
