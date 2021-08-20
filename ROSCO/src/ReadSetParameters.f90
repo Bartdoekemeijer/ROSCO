@@ -50,7 +50,6 @@ CONTAINS
     ! Read avrSWAP array passed from ServoDyn    
     SUBROUTINE ReadAvrSWAP(avrSWAP, LocalVar, zmqVar)
         USE ROSCO_Types, ONLY : LocalVariables, ZMQ_Variables
-        Use ZeroMQInterface
 
         REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*)   ! The swap array, used to pass data to, and receive data from, the DLL controller.
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
@@ -87,19 +86,6 @@ CONTAINS
             LocalVar%BlPitch(2) = LocalVar%PitCom(2)
             LocalVar%BlPitch(3) = LocalVar%PitCom(3)      
         ENDIF
-
-        PRINT *,' Calling UpdateZeroMQ...'
-        ! Collect measurements to be sent to ZeroMQ server
-
-        ! Call ZeroMQ function and exchange information
-        CALL UpdateZeroMQ(LocalVar, zmqVar)
-        write (*,*) "ZeroMQInterface: torque setpoint from ssc: ", setpoints(0)
-        write (*,*) "ZeroMQInterface: yaw setpoint from ssc: ", setpoints(1)
-        write (*,*) "ZeroMQInterface: pitch 1 setpoint from ssc: ", setpoints(2)
-        write (*,*) "ZeroMQInterface: pitch 2 setpoint from ssc: ", setpoints(3)
-        write (*,*) "ZeroMQInterface: pitch 3 setpoint from ssc: ", setpoints(4)
-
-        PRINT *,' Coming out of ZeroMQ client interface...'
 
     END SUBROUTINE ReadAvrSWAP    
 ! -----------------------------------------------------------------------------------
@@ -349,8 +335,8 @@ CONTAINS
         CALL ParseInput(UnControllerParameters,CurLine,'Y_MErrSet',accINFILE(1),CntrPar%Y_MErrSet,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_IntSat',accINFILE(1),CntrPar%Y_IPC_IntSat,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_n',accINFILE(1),CntrPar%Y_IPC_n,ErrVar)
-        CALL ParseAry(UnControllerParameters,CurLine,'Y_IPC_KP', CntrPar%Y_IPC_KP, 2, accINFILE(1), ErrVar)
-        CALL ParseAry(UnControllerParameters,CurLine,'Y_IPC_KI', CntrPar%Y_IPC_KI, 2, accINFILE(1), ErrVar)
+        CALL ParseAry(UnControllerParameters,CurLine,'Y_IPC_KP', CntrPar%Y_IPC_KP, CntrPar%Y_IPC_n, accINFILE(1), ErrVar)
+        CALL ParseAry(UnControllerParameters,CurLine,'Y_IPC_KI', CntrPar%Y_IPC_KI, CntrPar%Y_IPC_n, accINFILE(1), ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_omegaLP',accINFILE(1),CntrPar%Y_IPC_omegaLP,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_zetaLP',accINFILE(1),CntrPar%Y_IPC_zetaLP,ErrVar)
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
@@ -392,7 +378,7 @@ CONTAINS
         !------------ ZeroMQ ------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
         CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_CommAddress',accINFILE(1), zmqVar%ZMQ_CommAddress,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_YawCntrl',accINFILE(1), CntrPar%ZMQ_YawCntrl,ErrVar)
+        CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_YawCntrl',accINFILE(1), zmqVar%ZMQ_YawCntrl,ErrVar)
         ! END OF INPUT FILE    
 
         ! Close Input File
