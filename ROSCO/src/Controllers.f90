@@ -212,7 +212,7 @@ CONTAINS
         avrSWAP(47) = MAX(0.0, LocalVar%VS_LastGenTrq)  ! Demanded generator torque, prevent negatives.
     END SUBROUTINE VariableSpeedControl
 !-------------------------------------------------------------------------------------------------------------------------------
-    SUBROUTINE YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
+    SUBROUTINE YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, zmqVar, DebugVar, ErrVar)
         ! Yaw rate controller
         !       Y_ControlMode = 0, No yaw control
         !       Y_ControlMode = 1, Yaw rate control using yaw drive
@@ -220,7 +220,7 @@ CONTAINS
 
         ! TODO: Lots of R2D->D2R, this should be cleaned up.
         ! TODO: The constant offset implementation is sort of circular here as a setpoint is already being defined in SetVariablesSetpoints. This could also use cleanup
-        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables
+        USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances, DebugVariables, ErrorVariables, ZMQ_Variables
     
         REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.
     
@@ -229,6 +229,7 @@ CONTAINS
         TYPE(ObjectInstances), INTENT(INOUT)      :: objInst
         TYPE(DebugVariables), INTENT(INOUT)       :: DebugVar
         TYPE(ErrorVariables), INTENT(INOUT)       :: ErrVar
+        TYPE(ZMQ_Variables), INTENT(INOUT)  :: zmqVar
 
         ! Allocate Variables
         REAL(8), SAVE :: Yaw                                    ! Current yaw command--separate from YawPos--that dictates the commanded yaw position and should stay fixed for YawState==0; if the input YawPos is used, then it effectively allows the nacelle to freely rotate rotate
@@ -266,7 +267,11 @@ CONTAINS
             END IF
             
             ! Compute/apply offset
-            NacVaneOffset = CntrPar%Y_MErrSet ! (deg) # Offset from setpoint
+            IF (zmqVar%ZMQ_YawCntrl) THEN
+                NacVaneOffset = zmqVar%Yaw_Offset
+            ELSE
+                NacVaneOffset = CntrPar%Y_MErrSet ! (deg) # Offset from setpoint
+            ENDIF
 
             ! Update filtered wind direction
             WindDir_n = wrap_360(WindDir - NacVaneOffset) ! (deg)
