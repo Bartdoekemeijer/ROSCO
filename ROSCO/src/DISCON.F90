@@ -75,10 +75,12 @@ CALL PreFilterMeasuredSignals(CntrPar, LocalVar, objInst)
 CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
 
 IF ((LocalVar%iStatus >= 0) .AND. (ErrVar%aviFAIL >= 0))  THEN  ! Only compute control calculations if no error has occurred and we are not on the last time step
-    PRINT *,'Going in to ZeroMQ client interface...'
-    CALL UpdateZeroMQ(LocalVar, zmqVar)
-    PRINT *,' Coming out of ZeroMQ client interface...'
-
+    IF (zmqVar%ZMQ_Flag) THEN
+        PRINT *,'Going in to ZeroMQ client interface...'
+        CALL UpdateZeroMQ(LocalVar, zmqVar)
+        PRINT *,' Coming out of ZeroMQ client interface...'
+    ENDIF
+    
     CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
     CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
     CALL StateMachine(CntrPar, LocalVar)
