@@ -25,6 +25,7 @@ USE             :: Controllers
 USE             :: Constants
 USE             :: Filters
 USE             :: Functions
+USE             :: ZeroMQInterface
 
 IMPLICIT NONE
 ! Enable .dll export
@@ -74,6 +75,12 @@ CALL PreFilterMeasuredSignals(CntrPar, LocalVar, objInst)
 CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
 
 IF ((LocalVar%iStatus >= 0) .AND. (ErrVar%aviFAIL >= 0))  THEN  ! Only compute control calculations if no error has occurred and we are not on the last time step
+    IF (zmqVar%ZMQ_Flag) THEN
+        PRINT *,'Going in to ZeroMQ client interface...'
+        CALL UpdateZeroMQ(LocalVar, zmqVar)
+        PRINT *,' Coming out of ZeroMQ client interface...'
+    ENDIF
+    
     CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
     CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
     CALL StateMachine(CntrPar, LocalVar)
@@ -81,7 +88,7 @@ IF ((LocalVar%iStatus >= 0) .AND. (ErrVar%aviFAIL >= 0))  THEN  ! Only compute c
     CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
     CALL VariableSpeedControl(avrSWAP, CntrPar, LocalVar, objInst)
     CALL PitchControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
-    CALL YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, DebugVar, ErrVar)
+    CALL YawRateControl(avrSWAP, CntrPar, LocalVar, objInst, zmqVar, DebugVar, ErrVar)
     CALL FlapControl(avrSWAP, CntrPar, LocalVar, objInst)
     CALL Debug(LocalVar, CntrPar, DebugVar, avrSWAP, RootName, SIZE(avcOUTNAME))
 END IF
