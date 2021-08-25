@@ -824,24 +824,26 @@ CONTAINS
 
         ! ---- Yaw Control ----
         IF (CntrPar%Y_ControlMode > 0) THEN
-            IF (CntrPar%Y_IPC_omegaLP <= 0.0)  THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'Y_IPC_omegaLP must be greater than zero.'
-            ENDIF
-            
-            IF (CntrPar%Y_IPC_zetaLP <= 0.0)  THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'Y_IPC_zetaLP must be greater than zero.'
-            ENDIF
-            
-            IF (CntrPar%Y_ErrThresh(1) <= 0.0)  THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'Y_ErrThresh must be greater than zero.'
-            ENDIF
-            
-            IF (CntrPar%Y_Rate <= 0.0)  THEN
-                ErrVar%aviFAIL = -1
-                ErrVar%ErrMsg  = 'CntrPar%Y_Rate must be greater than zero.'
+            IF (CntrPar%Y_ControlMode == 2) THEN
+                IF (CntrPar%Y_IPC_omegaLP <= 0.0)  THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg  = 'Y_IPC_omegaLP must be greater than zero.'
+                ENDIF
+                
+                IF (CntrPar%Y_IPC_zetaLP <= 0.0)  THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg  = 'Y_IPC_zetaLP must be greater than zero.'
+                ENDIF
+            ELSEIF (CntrPar%Y_ControlMode == 1) THEN
+                IF (CntrPar%Y_ErrThresh(1) <= 0.0)  THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg  = 'Y_ErrThresh must be greater than zero.'
+                ENDIF
+                
+                IF (CntrPar%Y_Rate <= 0.0)  THEN
+                    ErrVar%aviFAIL = -1
+                    ErrVar%ErrMsg  = 'CntrPar%Y_Rate must be greater than zero.'
+                ENDIF
             ENDIF
             
         ENDIF
