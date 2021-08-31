@@ -10,7 +10,7 @@
 0                   ! IPC_ControlMode	- Turn Individual Pitch Control (IPC) for fatigue load reductions (pitch contribution) {0: off, 1: 1P reductions, 2: 1P+2P reductions}
 2                   ! VS_ControlMode	- Generator torque control mode in above rated conditions {0: constant torque, 1: constant power, 2: TSR tracking PI control}
 1                   ! PC_ControlMode    - Blade pitch control mode {0: No pitch, fix to fine pitch, 1: active PI blade pitch control}
-0                   ! Y_ControlMode		- Yaw control mode {0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}
+1                   ! Y_ControlMode	- Yaw control mode {0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}
 1                   ! SS_Mode           - Setpoint Smoother mode {0: no setpoint smoothing, 1: introduce setpoint smoothing}
 2                   ! WE_Mode           - Wind speed estimator mode {0: One-second low pass filtered hub height wind speed, 1: Immersion and Invariance Estimator, 2: Extended Kalman Filter}
 0                   ! PS_Mode           - Pitch saturation mode {0: no pitch saturation, 1: implement pitch saturation}
@@ -119,5 +119,6 @@
 0.000000000000      ! Flp_MaxPit        - Maximum (and minimum) flap pitch angle [rad]
 
 !------- Zero-MQ------- -----------------------------------------------------
+1                      ! ZMQ_YawCntrl      - Flag - use ZeroMQ to obtain yaw controller offset setpoints [0=True, 1=False]
 "tcp://localhost:5555" ! ZMQ_CommAddress   - Communication address for ZMQ server [string]
-0                    ! ZMQ_YawCntrl      - Flag - use ZeroMQ to obtain yaw controller offset setpoints [0=True, 1=False]
+161                    ! ZMQ_updateFreq    - Integer - call ZeroMQ every [x] timesteps
