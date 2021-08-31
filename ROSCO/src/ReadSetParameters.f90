@@ -215,7 +215,7 @@ CONTAINS
         INTEGER(4), PARAMETER                           :: UnControllerParameters = 89  ! Unit number to open file
         TYPE(ControlParameters),    INTENT(INOUT)       :: CntrPar                      ! Control parameter type
         TYPE(ErrorVariables),       INTENT(INOUT)       :: ErrVar                      ! Control parameter type
-        TYPE(ZMQ_Variables),       INTENT(INOUT)       :: zmqVar                      ! Control parameter type
+        TYPE(ZMQ_Variables),       INTENT(INOUT)        :: zmqVar                      ! Control parameter type
 
         INTEGER(4)                                      :: CurLine 
 
@@ -381,8 +381,10 @@ CONTAINS
 
         !------------ ZeroMQ ------------
         CALL ReadEmptyLine(UnControllerParameters,CurLine)   
+		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_YawCntrl',accINFILE(1), zmqVar%ZMQ_YawCntrl,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_CommAddress',accINFILE(1), zmqVar%ZMQ_CommAddress,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_YawCntrl',accINFILE(1), zmqVar%ZMQ_YawCntrl,ErrVar)
+		CALL ParseInput(UnControllerParameters,CurLine,'ZMQ_updateFreq',accINFILE(1), zmqVar%ZMQ_UpdateFreq,ErrVar)
+		zmqVar%ZMQ_UpdateCounter = 99999999 ! Initialize as very large number
         ! END OF INPUT FILE    
 
         ! Close Input File

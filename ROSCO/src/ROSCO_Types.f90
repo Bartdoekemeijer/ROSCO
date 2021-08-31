@@ -237,6 +237,8 @@ END TYPE PerformanceData
 TYPE, PUBLIC :: ZMQ_Variables
     LOGICAL(4)                            :: ZMQ_Flag           ! Flag if we're using zeroMQ at all {0: True, 1: False}
 	CHARACTER(256)                        :: ZMQ_CommAddress    ! Comm Address to zeroMQ client
+	INTEGER(4)                            :: ZMQ_UpdateFreq     ! Integer for zeromq update frequency
+	INTEGER(4)                            :: ZMQ_UpdateCounter  ! Integer for zeromq update frequency/counter
     INTEGER(4)                            :: ZMQ_YawCntrl       ! Flag for zeromq yaw controll {0: off, 1: on}
 	REAL(8)                               :: Yaw_Offset         ! Yaw offsety command
 END TYPE ZMQ_Variables
