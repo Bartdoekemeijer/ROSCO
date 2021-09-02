@@ -15,11 +15,19 @@ socket = context.socket(zmq.REP)
 socket.bind("tcp://*:5555")
 print("Starting ZMQ Server on Python side")
 
+verbose = True
+
+t_last_change = 0.0
+t_change_frequency = 100000.0
+setpoints = [30.0]
+
+setpoint_id = 0
 i = 0
 while True:
     #  Wait for next request from client
     message_in = socket.recv()
-    print("zmq_server.py: Received request [%d]." % i)
+    if verbose:
+        print("zmq_server.py: Received request [%d]." % i)
 
     # Convert to individual strings and then to floats
     measurements = bytes.decode(message_in).split(',')
@@ -43,17 +51,29 @@ while True:
         'NacIMU_FA_Acc': measurements[13],
         'Azimuth': measurements[14],
     })
-    print(measurements)
+    if verbose:
+        print('i = %d' % i, measurements)
 
     # # Do some estimation stuff
     # wd_consensus_array = consensus_filtering(...)
     # yaw_angles_opt = floris.optimize(...)
 
+    current_time = measurements['Time']
+    if  (current_time - t_last_change) >= t_change_frequency:
+        print('t=%d s, Updating yaw setpoint...' % current_time)
+        t_last_change = current_time
+        setpoint_id += 1
+        if setpoint_id == len(setpoints):
+            setpoint_id = 0
+
+    stpnt_yaw = setpoints[setpoint_id]
     stpnt_torque = 0.0
-    stpnt_yaw = 275.838
-    stpnt_pitch1 = 3. + 5.*np.sin(measurements['Time'])
+    stpnt_pitch1 = 0.0
     stpnt_pitch2 = 0.0
-    stpnt_pitch3 = -4.1
+    stpnt_pitch3 = 0.0
+    #stpnt_pitch1 = 3. + 5.*np.sin(measurements['Time'])
+    #stpnt_pitch2 = 0.0
+    #stpnt_pitch3 = -4.1
 
     # # Create a message with setpoints to send to ROSCO
     message_out = b"%016.5f, %016.5f, %016.5f, %016.5f, %016.5f" % (
@@ -61,10 +81,8 @@ while True:
     )
 
     #  Send reply back to client
-    print("Sending string to ROSCO: %s." % message_out)
+    if verbose:
+        print("Sending string to ROSCO: %s." % message_out)
     socket.send(message_out)
-
-    print("Sleeping a couple seconds...")
-    time.sleep(5.0)
 
     i += 1
