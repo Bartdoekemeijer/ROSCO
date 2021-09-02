@@ -119,6 +119,6 @@
 0.000000000000      ! Flp_MaxPit        - Maximum (and minimum) flap pitch angle [rad]
 
 !------- Zero-MQ------- -----------------------------------------------------
-1                      ! ZMQ_YawCntrl      - Flag - use ZeroMQ to obtain yaw controller offset setpoints [0=True, 1=False]
+0                      ! ZMQ_YawCntrl      - Flag - use ZeroMQ to obtain yaw controller offset setpoints [0=True, 1=False]
 "tcp://localhost:5555" ! ZMQ_CommAddress   - Communication address for ZMQ server [string]
 161                    ! ZMQ_updateFreq    - Integer - call ZeroMQ every [x] timesteps
