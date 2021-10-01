@@ -649,15 +649,14 @@ CONTAINS
         ! If we're debugging, open the debug file and write the header:
             ! Note that the headers will be Truncated to 10 characters!!
             IF (CntrPar%LoggingLevel > 0) THEN
-                Version = QueryGitVersion()
                 OPEN(unit=UnDb, FILE=RootName(1:size_avcOUTNAME-5)//'RO.dbg')
-                WRITE (UnDb,*)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(Version)
+                WRITE (UnDb,*)  'Generated on '//CurDate()//' at '//CurTime()//' using ROSCO-'//TRIM(rosco_version)
                 WRITE (UnDb,'(99(a10,TR5:))') 'Time',   DebugOutStrings
                 WRITE (UnDb,'(99(a10,TR5:))') '(sec)',  DebugOutUnits
             END IF
             
             IF (CntrPar%LoggingLevel > 1) THEN 
-                OPEN(unit=UnDb2, FILE='DEBUG2.dbg')
+                OPEN(unit=UnDb2, FILE=RootName(1:size_avcOUTNAME-5)//'RO.dbg2')
                 WRITE(UnDb2,'(/////)')
                 WRITE(UnDb2,'(A,85("'//Tab//'AvrSWAP(",I2,")"))')  'LocalVar%Time ', (i,i=1,85)
                 WRITE(UnDb2,'(A,85("'//Tab//'(-)"))')  '(s)'
@@ -682,24 +681,6 @@ CONTAINS
 
     END SUBROUTINE Debug
 
-!-------------------------------------------------------------------------------------------------------------------------------
-FUNCTION QueryGitVersion()
-
-   CHARACTER(200) :: QueryGitVersion
-
-! The Visual Studio project sets the path for where to find the header file with version info
-#ifdef GIT_INCLUDE_FILE
-#include GIT_INCLUDE_FILE
-#endif
-
-#ifdef GIT_VERSION_INFO
-   QueryGitVersion = GIT_VERSION_INFO
-#else
-   QueryGitVersion = 'unversioned'
-#endif
-
-   RETURN
-END FUNCTION QueryGitVersion
 
 !-------------------------------------------------------------------------------------------------------------------------------
     ! Copied from NWTC_IO.f90
