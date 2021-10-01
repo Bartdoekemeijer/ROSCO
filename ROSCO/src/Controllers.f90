@@ -232,13 +232,15 @@ CONTAINS
         TYPE(ZMQ_Variables), INTENT(INOUT)  :: zmqVar
 
         ! Allocate Variables
-        REAL(8), SAVE :: Yaw                                    ! Current yaw command--separate from YawPos--that dictates the commanded yaw position and should stay fixed for YawState==0; if the input YawPos is used, then it effectively allows the nacelle to freely rotate rotate
-        REAL(8), SAVE :: NacVane                                ! Current wind vane measurement (deg)
-        REAL(8), SAVE :: NacVaneOffset                          ! For offset control (unused)
+        ! REAL(8), SAVE :: Yaw                                    ! Current yaw command--separate from YawPos--that dictates the commanded yaw position and should stay fixed for YawState==0; if the input YawPos is used, then it effectively allows the nacelle to freely rotate rotate
+        ! LocalVar%NacHeading is the turbine yaw angle             ! OpenFAST definition: positive rotation of the nacelle about the vertical tower axis, counterclockwise when looking downward
+        REAL(8), SAVE :: NacVaneOffset                          ! For offset control
         INTEGER, SAVE :: YawState                               ! Yawing left(-1), right(1), or stopped(0)
-        REAL(8)       :: WindDirCosF, WindDirSinF, WindDirF     ! Filtered wind direction (deg)
-        REAL(8)       :: WindDir                                ! Wind direction (deg)
-        REAL(8)       :: WindDir_n                              ! Update wind direction after accounting for offset (deg)
+        REAL(8)       :: WindDir                                 ! Instantaneous wind dind direction, equal to turbine nacelle heading plus the measured vane angle (deg)
+        REAL(8)       :: WindDirMinusOffset                      ! Instantaneous wind direction minus the assigned vane offset (deg)
+        REAL(8)       :: WindDirMinusOffsetCosF                  ! Time-filtered x-component of WindDirMinusOffset (deg)
+        REAL(8)       :: WindDirMinusOffsetSinF                  ! Time-filtered y-component of WindDirMinusOffset (deg)
+        REAL(8)       :: NacHeadingTarget                       ! Time-filtered wind direction minus the assigned vane offset (deg)
         REAL(8), SAVE :: Y_Err                                  ! Yaw error (deg)
         REAL(8)       :: YawRateCom                             ! Commanded yaw rate
         REAL(8)       :: deadband                               ! Allowable yaw error deadband (rad)
@@ -248,23 +250,13 @@ CONTAINS
         IF (CntrPar%Y_ControlMode == 1) THEN
 
             ! Compass wind directions in degrees
-            WindDir = (LocalVar%Nac_YawNorth + LocalVar%Y_M) * R2D
+            WindDir = wrap_360(LocalVar%NacHeading + (LocalVar%NacVane) * R2D)
             
             ! Initialize
             IF (LocalVar%iStatus == 0) THEN
-                Yaw = LocalVar%Nac_YawNorth
                 YawState = 0
                 Tidx = 1
             ENDIF
-            
-            ! Compute wind vane
-            NacVane = wrap_180(WindDir - Yaw)      ! Measured yaw error 
-
-            ! Update commanded offset if needed
-            IF (ALLOCATED(CntrPar%Y_MErrHist)) THEN
-                ! Interpolate
-                CntrPar%Y_MErrSet = interp1d(CntrPar%Y_MErrTime, CntrPar%Y_MErrHist, LocalVar%Time, ErrVar)
-            END IF
             
             ! Compute/apply offset
             IF (zmqVar%ZMQ_YawCntrl == 1) THEN
@@ -274,15 +266,15 @@ CONTAINS
             ENDIF
 
             ! Update filtered wind direction
-            WindDir_n = wrap_360(WindDir - NacVaneOffset) ! (deg)
-            WindDirCosF = LPFilter(cos(WindDir_n*D2R), LocalVar%DT, CntrPar%F_YawErr, LocalVar%iStatus, .FALSE., objInst%instLPF) ! (-)
-            WindDirSinF = LPFilter(sin(WindDir_n*D2R), LocalVar%DT, CntrPar%F_YawErr, LocalVar%iStatus, .FALSE., objInst%instLPF) ! (-)
-            WindDirF = wrap_360(atan2(WindDirSinF, WindDirCosF) * R2D) ! (deg)
-            
+            WindDirMinusOffset = wrap_360(WindDir - NacVaneOffset) ! (deg)
+            WindDirMinusOffsetCosF = LPFilter(cos(WindDirMinusOffset*D2R), LocalVar%DT, CntrPar%F_YawErr, LocalVar%iStatus, .FALSE., objInst%instLPF) ! (-)
+            WindDirMinusOffsetSinF = LPFilter(sin(WindDirMinusOffset*D2R), LocalVar%DT, CntrPar%F_YawErr, LocalVar%iStatus, .FALSE., objInst%instLPF) ! (-)
+            NacHeadingTarget = wrap_360(atan2(WindDirMinusOffsetSinF, WindDirMinusOffsetCosF) * R2D) ! (deg)
+
             ! ---- Now get into the guts of the control ----
             ! Yaw error
-            Y_Err = wrap_180(WindDirF - Yaw)
-
+            Y_Err = wrap_180(NacHeadingTarget - LocalVar%NacHeading)
+			
             ! Check for deadband
             IF (LocalVar%WE_Vw_F .le. CntrPar%Y_uSwitch) THEN
                 deadband = CntrPar%Y_ErrThresh(1)
@@ -298,7 +290,7 @@ CONTAINS
                     YawState = 0 
                 ELSE
                     ! persist
-                    Yaw = wrap_360(Yaw + CntrPar%Y_Rate*R2D*LocalVar%DT)
+                    LocalVar%NacHeading = wrap_360(LocalVar%NacHeading + CntrPar%Y_Rate*R2D*LocalVar%DT)
                     YawRateCom = CntrPar%Y_Rate
                     YawState = 1 
                 ENDIF
@@ -310,7 +302,7 @@ CONTAINS
                     YawState = 0 
                 ELSE
                     ! persist
-                    Yaw = wrap_360(Yaw - CntrPar%Y_Rate*R2D*LocalVar%DT)
+                    LocalVar%NacHeading = wrap_360(LocalVar%NacHeading - CntrPar%Y_Rate*R2D*LocalVar%DT)
                     YawRateCom = -CntrPar%Y_Rate
                     YawState = -1 
                 ENDIF
@@ -328,19 +320,17 @@ CONTAINS
             ENDIF
 
             ! Output yaw rate command
-            avrSWAP(48)      = YawRateCom       
-            LocalVar%Y_Angle = Yaw
+            avrSWAP(48)      = YawRateCom
 
             ! Save for debug
             DebugVar%YawRateCom     = YawRateCom
-            DebugVar%WindDir        = WindDir
-            DebugVar%WindDir_n      = WindDir_n
-            DebugVar%WindDirF       = WindDirF
-            DebugVar%NacVane        = NacVane
+            DebugVar%NacHeadingTarget = NacHeadingTarget
             DebugVar%NacVaneOffset  = NacVaneOffset
-            DebugVar%Yaw_err        = Y_Err
             DebugVar%YawState       = YawState
 
+            write (*,*) "WindDir: ", WindDir
+            write (*,*) "LocalVar%NacHeading: ", LocalVar%NacHeading
+            write (*,*) "NacHeadingTarget: ", NacHeadingTarget
         END IF
     END SUBROUTINE YawRateControl
 !-------------------------------------------------------------------------------------------------------------------------------
@@ -381,7 +371,7 @@ CONTAINS
         
         ! High-pass filter the MBC yaw component and filter yaw alignment error, and compute the yaw-by-IPC contribution
         IF (CntrPar%Y_ControlMode == 2) THEN
-            Y_MErrF = SecLPFilter(LocalVar%Y_MErr, LocalVar%DT, CntrPar%Y_IPC_omegaLP, CntrPar%Y_IPC_zetaLP, LocalVar%iStatus, .FALSE., objInst%instSecLPF)
+            Y_MErrF = SecLPFilter(LocalVar%NacVane, LocalVar%DT, CntrPar%Y_IPC_omegaLP, CntrPar%Y_IPC_zetaLP, LocalVar%iStatus, .FALSE., objInst%instSecLPF)
             Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP(1), CntrPar%Y_IPC_KI(1), -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, 0.0, .FALSE., objInst%instPI)
         ELSE
             axisYawF_1P = axisYaw_1P

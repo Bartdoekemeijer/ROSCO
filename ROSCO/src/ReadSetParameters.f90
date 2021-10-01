@@ -66,7 +66,7 @@ CONTAINS
         LocalVar%GenSpeed = avrSWAP(20)
         LocalVar%RotSpeed = avrSWAP(21)
         LocalVar%GenTqMeas = avrSWAP(23)
-        LocalVar%Y_M = avrSWAP(24)
+        LocalVar%NacVane = avrSWAP(24)
         LocalVar%HorWindV = avrSWAP(27)
         LocalVar%rootMOOP(1) = avrSWAP(30)
         LocalVar%rootMOOP(2) = avrSWAP(31)
@@ -170,8 +170,8 @@ CONTAINS
         
             ! Initialize the SAVED variables:
             LocalVar%PitCom = LocalVar%BlPitch ! This will ensure that the variable speed controller picks the correct control region and the pitch controller picks the correct gain on the first call
-            LocalVar%Y_AccErr = 0.0  ! This will ensure that the accumulated yaw error starts at zero
-            LocalVar%Y_YawEndT = -1.0 ! This will ensure that the initial yaw end time is lower than the actual time to prevent initial yawing
+            ! LocalVar%Y_AccErr = 0.0  ! This will ensure that the accumulated yaw error starts at zero
+            ! LocalVar%Y_YawEndT = -1.0 ! This will ensure that the initial yaw end time is lower than the actual time to prevent initial yawing
             
             ! Wind speed estimator initialization
             LocalVar%WE_Vw = LocalVar%HorWindV

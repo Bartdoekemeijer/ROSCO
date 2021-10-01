@@ -46,9 +46,6 @@ CONTAINS
         REAL(8)                                 :: Omega_op         ! Optimal TSR-tracking generator speed, [rad/s]
         ! temp
         ! REAL(8)                                 :: VS_TSRop = 7.5
-
-        ! ----- Calculate yaw misalignment error -----
-        LocalVar%Y_MErr = LocalVar%Y_M + CntrPar%Y_MErrSet ! Yaw-alignment error
         
         ! ----- Pitch controller speed and power error -----
         ! Implement setpoint smoothing

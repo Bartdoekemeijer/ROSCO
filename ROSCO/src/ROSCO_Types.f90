@@ -145,13 +145,14 @@ TYPE, PUBLIC :: LocalVariables
     REAL(8)                      :: VS_GenPwr
     REAL(8)                      :: GenSpeed
     REAL(8)                      :: RotSpeed
-    REAL(8)                      :: Y_M
+    REAL(8)                      :: NacHeading                          ! Nacelle heading of the turbine w.r.t. north [deg]
+    REAL(8)                      :: NacVane                             ! Nacelle vane angle [rad]
     REAL(8)                      :: HorWindV
     REAL(8)                      :: rootMOOP(3)
     REAL(8)                      :: BlPitch(3)
     REAL(8)                      :: Azimuth
     INTEGER(4)                   :: NumBl
-    REAL(8)                      :: FA_Acc                       ! Tower fore-aft acceleration [m/s^2]
+    REAL(8)                      :: FA_Acc                              ! Tower fore-aft acceleration [m/s^2]
     REAL(8)                      :: NacIMU_FA_Acc                       ! Tower fore-aft acceleration [rad/s^2]
 
     ! ---------- -Internal controller variables ----------
@@ -195,15 +196,6 @@ TYPE, PUBLIC :: LocalVariables
     REAL(8)                             :: WE_VwI                       ! Integrated wind speed quantity for estimation [m/s]
     REAL(8)                             :: WE_VwIdot                    ! Differentiated integrated wind speed quantity for estimation [m/s]
     REAL(8)                             :: VS_LastGenTrqF               ! Differentiated integrated wind speed quantity for estimation [m/s]
-    REAL(8)                             :: Y_AccErr                     ! Accumulated yaw error [rad].
-    REAL(8)                             :: Y_ErrLPFFast                 ! Filtered yaw error by fast low pass filter [rad].
-    REAL(8)                             :: Y_ErrLPFSlow                 ! Filtered yaw error by slow low pass filter [rad].
-    REAL(8)                             :: Y_MErr                       ! Measured yaw error, measured + setpoint [rad].
-    REAL(8)                             :: Y_YawEndT                    ! Yaw end time [s]. Indicates the time up until which yaw is active with a fixed rate                       ! Measured yaw error, measured + setpoint [rad].
-    REAL(8)                             :: Y_fN                         ! Yaw direction, from north [rad]
-    REAL(8)                             :: Y_Angle                      ! Yaw angle [deg]
-    REAL(8)                             :: Nac_YawNorth                 ! Nacelle yaw angle from north
-    REAL(8)                             :: Y_MErrSet                    ! Nacelle yaw measurement error
     LOGICAL(1)                          :: SD                           ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(8)                             :: Fl_PitCom                           ! Shutdown, .FALSE. if inactive, .TRUE. if active
     REAL(8)                             :: NACIMU_FA_AccF
@@ -211,10 +203,10 @@ TYPE, PUBLIC :: LocalVariables
     REAL(8)                             :: Flp_Angle(3)                 ! Flap Angle (rad)
     
     ! TEMP - for YAW API
-    REAL(8) :: WindDir
-    REAL(8) :: NacVane
-    REAL(8) :: Yaw_err
-    REAL(8) :: YawRateCom
+    ! REAL(8) :: WindDir
+    ! REAL(8) :: NacVane
+    ! REAL(8) :: Yaw_err
+    ! REAL(8) :: YawRateCom
     
     END TYPE LocalVariables
 
@@ -255,10 +247,7 @@ TYPE, PUBLIC :: DebugVariables
     REAL(8)                             :: WE_F12                         ! Torque that WSE uses, for debug purposes [-]
     REAL(8)                             :: WE_F13                         ! Torque that WSE uses, for debug purposes [-]
     REAL(8)                             :: YawRateCom
-    REAL(8)                             :: WindDir
-    REAL(8)                             :: WindDir_n
-    REAL(8)                             :: WindDirF
-    REAL(8)                             :: NacVane
+    REAL(8)                             :: NacHeadingTarget
     REAL(8)                             :: NacVaneOffset
     REAL(8)                             :: Yaw_err
     REAL(8)                             :: YawState
