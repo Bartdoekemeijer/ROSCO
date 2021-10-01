@@ -239,8 +239,8 @@ CONTAINS
         REAL(8)       :: WindDirMinusOffsetSinF                 ! Time-filtered y-component of WindDirMinusOffset (deg)
         REAL(8)       :: NacHeadingTarget                       ! Time-filtered wind direction minus the assigned vane offset (deg)
         REAL(8), SAVE :: NacHeadingError                        ! Yaw error (deg)
-        REAL(8)       :: YawRateCom                             ! Commanded yaw rate
-        REAL(8)       :: deadband                               ! Allowable yaw error deadband (rad)
+        REAL(8)       :: YawRateCom                             ! Commanded yaw rate (deg/s)
+        REAL(8)       :: deadband                               ! Allowable yaw error deadband (deg)
         REAL(8)       :: Time                                   ! Current time
         INTEGER, SAVE :: Tidx                                   ! Index i: commanded yaw error is interpolated between i and i+1
         
@@ -287,7 +287,7 @@ CONTAINS
                     YawState = 0 
                 ELSE
                     ! persist
-                    LocalVar%NacHeading = wrap_360(LocalVar%NacHeading + CntrPar%Y_Rate*R2D*LocalVar%DT)
+                    LocalVar%NacHeading = wrap_360(LocalVar%NacHeading + CntrPar%Y_Rate*LocalVar%DT)
                     YawRateCom = CntrPar%Y_Rate
                     YawState = 1 
                 ENDIF
@@ -299,25 +299,25 @@ CONTAINS
                     YawState = 0 
                 ELSE
                     ! persist
-                    LocalVar%NacHeading = wrap_360(LocalVar%NacHeading - CntrPar%Y_Rate*R2D*LocalVar%DT)
+                    LocalVar%NacHeading = wrap_360(LocalVar%NacHeading - CntrPar%Y_Rate*LocalVar%DT)
                     YawRateCom = -CntrPar%Y_Rate
                     YawState = -1 
                 ENDIF
             ! Initiate yaw if outside yaw error threshold
             ELSE
-                IF (NacHeadingError .gt. deadband*R2D) THEN
+                IF (NacHeadingError .gt. deadband) THEN
                     YawState = 1 ! yaw right
                 ENDIF
 
-                IF (NacHeadingError .lt. -deadband*R2D) THEN
+                IF (NacHeadingError .lt. -deadband) THEN
                     YawState = -1 ! yaw left
                 ENDIF
 
                 YawRateCom = 0.0 ! if YawState is not 0, start yawing on the next time step
             ENDIF
 
-            ! Output yaw rate command
-            avrSWAP(48)      = YawRateCom
+            ! Output yaw rate command in rad/s
+            avrSWAP(48) = YawRateCom * D2R
 
             ! Save for debug
             DebugVar%YawRateCom       = YawRateCom

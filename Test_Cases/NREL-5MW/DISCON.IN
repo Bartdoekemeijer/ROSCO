@@ -85,8 +85,8 @@
 
 !------- YAW CONTROL ------------------------------------------------------
 0.0                 ! Y_uSwitch			- Wind speed to switch between Y_ErrThresh. If zero, only the first value of Y_ErrThresh is used [m/s]
-0.06981 0.139626    ! Y_ErrThresh		- Yaw error threshold. Turbine begins to yaw when it passes this. If Y_uSwitch is zero, only the first value is used. [rad]
-0.0052359           ! Y_Rate			- Yaw rate [rad/s]
+4.0 8.0             ! Y_ErrThresh		- Yaw error threshold. Turbine begins to yaw when it passes this. If Y_uSwitch is zero, only the first value is used. [deg]
+0.30                ! Y_Rate			- Yaw rate [deg/s]
 0.0                 ! Y_MErrSet			- Constant yaw misalignment setpoint (if zeroMQ is disabled) [deg]
 
 !------- TOWER FORE-AFT DAMPING -------------------------------------------
