@@ -45,7 +45,7 @@ int zmq_client (
     sprintf(a, "%016.5f,", measurements[0]);
     // printf ("zmq_client.c: a[ml]: measurements[0]: %s\n", a);
     i = 1;
-    while (i <= nm) {
+    while (i < nm) {
         sprintf(b, "%016.5f,", measurements[i]);
         strcat(a, b);  // Concatenate b to a
         // printf ("zmq_client.c: b[ml]: measurements[i]: %s\n", b);
