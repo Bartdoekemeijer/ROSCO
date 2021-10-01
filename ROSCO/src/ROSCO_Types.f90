@@ -98,20 +98,11 @@ TYPE, PUBLIC :: ControlParameters
     REAL(8), DIMENSION(:), ALLOCATABLE  :: WE_FOPoles_v                 ! Wind speeds corresponding to first-order system poles [m/s]
     REAL(8), DIMENSION(:), ALLOCATABLE  :: WE_FOPoles                   ! First order system poles
 
-    INTEGER(4)                          :: Y_ControlMode                ! Yaw control mode {0: no yaw control, 1: yaw rate control, 2: yaw-by-IPC}
+    INTEGER(4)                          :: Y_ControlMode                ! Yaw control mode {0: no yaw control, 1: yaw rate control}
     REAL(8)                             :: Y_uSwitch                    ! Wind speed to switch between Y_ErrThresh. If zero, only the first value of Y_ErrThresh is used [rad]
     REAL(8), DIMENSION(:), ALLOCATABLE  :: Y_ErrThresh                  ! Error threshold [rad]. Turbine begins to yaw when it passes this. (104.71975512) -- 1.745329252
     REAL(8)                             :: Y_Rate                       ! Yaw rate [rad/s]
     REAL(8)                             :: Y_MErrSet                    ! Yaw measurement error offset (for wake steering) [rad]
-    REAL(8), DIMENSION(:), ALLOCATABLE  :: Y_MErrHist                   ! History of desired yaw offsets [rad]
-    REAL(8), DIMENSION(:), ALLOCATABLE  :: Y_MErrTime                   ! Times corresponding to history of desired yaw offsets
-    REAL(8)                             :: Y_IPC_IntSat                 ! Integrator saturation (maximum signal amplitude contrbution to pitch from yaw-by-IPC)
-    INTEGER(4)                          :: Y_IPC_n                      ! Number of controller gains (yaw-by-IPC)
-    REAL(8), DIMENSION(:), ALLOCATABLE  :: Y_IPC_KP                     ! Yaw-by-IPC proportional controller gain Kp
-    REAL(8), DIMENSION(:), ALLOCATABLE  :: Y_IPC_KI                     ! Yaw-by-IPC integral controller gain Ki
-    REAL(8)                             :: Y_IPC_omegaLP                ! Low-pass filter corner frequency for the Yaw-by-IPC controller to filtering the yaw alignment error, [rad/s].
-    REAL(8)                             :: Y_IPC_zetaLP                 ! Low-pass filter damping factor for the Yaw-by-IPC controller to filtering the yaw alignment error, [-].
-    
     
     INTEGER(4)                          :: PS_Mode                      ! Pitch saturation mode {0: no peak shaving, 1: implement pitch saturation}
     INTEGER(4)                          :: PS_BldPitchMin_N             ! Number of values in minimum blade pitch lookup table (should equal number of values in PS_WindSpeeds and PS_BldPitchMin)
@@ -146,7 +137,7 @@ TYPE, PUBLIC :: LocalVariables
     REAL(8)                      :: GenSpeed
     REAL(8)                      :: RotSpeed
     REAL(8)                      :: NacHeading                          ! Nacelle heading of the turbine w.r.t. north [deg]
-    REAL(8)                      :: NacVane                             ! Nacelle vane angle [rad]
+    REAL(8)                      :: NacVane                             ! Nacelle vane angle [deg]
     REAL(8)                      :: HorWindV
     REAL(8)                      :: rootMOOP(3)
     REAL(8)                      :: BlPitch(3)

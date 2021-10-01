@@ -77,14 +77,14 @@ CONTAINS
         END IF
         DebugVar%PC_PICommand = LocalVar%PC_PitComT
         ! Find individual pitch control contribution
-        IF ((CntrPar%IPC_ControlMode >= 1) .OR. (CntrPar%Y_ControlMode == 2)) THEN
+        IF (CntrPar%IPC_ControlMode >= 1) THEN
             CALL IPC(CntrPar, LocalVar, objInst)
         ELSE
             LocalVar%IPC_PitComF = 0.0 ! THIS IS AN ARRAY!!
         END IF
         
         ! Include tower fore-aft tower vibration damping control
-        IF ((CntrPar%FA_KI > 0.0) .OR. (CntrPar%Y_ControlMode == 2)) THEN
+        IF (CntrPar%FA_KI > 0.0) THEN
             CALL ForeAftDamping(CntrPar, LocalVar, objInst)
         ELSE
             LocalVar%FA_PitCom = 0.0 ! THIS IS AN ARRAY!!
@@ -216,7 +216,6 @@ CONTAINS
         ! Yaw rate controller
         !       Y_ControlMode = 0, No yaw control
         !       Y_ControlMode = 1, Yaw rate control using yaw drive
-        !       Y_ControlMode = 2, Yaw by IPC (accounted for in IPC subroutine)
 
         ! TODO: Lots of R2D->D2R, this should be cleaned up.
         ! TODO: The constant offset implementation is sort of circular here as a setpoint is already being defined in SetVariablesSetpoints. This could also use cleanup
@@ -232,16 +231,14 @@ CONTAINS
         TYPE(ZMQ_Variables), INTENT(INOUT)  :: zmqVar
 
         ! Allocate Variables
-        ! REAL(8), SAVE :: Yaw                                    ! Current yaw command--separate from YawPos--that dictates the commanded yaw position and should stay fixed for YawState==0; if the input YawPos is used, then it effectively allows the nacelle to freely rotate rotate
-        ! LocalVar%NacHeading is the turbine yaw angle             ! OpenFAST definition: positive rotation of the nacelle about the vertical tower axis, counterclockwise when looking downward
         REAL(8), SAVE :: NacVaneOffset                          ! For offset control
         INTEGER, SAVE :: YawState                               ! Yawing left(-1), right(1), or stopped(0)
-        REAL(8)       :: WindDir                                 ! Instantaneous wind dind direction, equal to turbine nacelle heading plus the measured vane angle (deg)
-        REAL(8)       :: WindDirMinusOffset                      ! Instantaneous wind direction minus the assigned vane offset (deg)
-        REAL(8)       :: WindDirMinusOffsetCosF                  ! Time-filtered x-component of WindDirMinusOffset (deg)
-        REAL(8)       :: WindDirMinusOffsetSinF                  ! Time-filtered y-component of WindDirMinusOffset (deg)
+        REAL(8)       :: WindDir                                ! Instantaneous wind dind direction, equal to turbine nacelle heading plus the measured vane angle (deg)
+        REAL(8)       :: WindDirMinusOffset                     ! Instantaneous wind direction minus the assigned vane offset (deg)
+        REAL(8)       :: WindDirMinusOffsetCosF                 ! Time-filtered x-component of WindDirMinusOffset (deg)
+        REAL(8)       :: WindDirMinusOffsetSinF                 ! Time-filtered y-component of WindDirMinusOffset (deg)
         REAL(8)       :: NacHeadingTarget                       ! Time-filtered wind direction minus the assigned vane offset (deg)
-        REAL(8), SAVE :: Y_Err                                  ! Yaw error (deg)
+        REAL(8), SAVE :: NacHeadingError                        ! Yaw error (deg)
         REAL(8)       :: YawRateCom                             ! Commanded yaw rate
         REAL(8)       :: deadband                               ! Allowable yaw error deadband (rad)
         REAL(8)       :: Time                                   ! Current time
@@ -250,7 +247,7 @@ CONTAINS
         IF (CntrPar%Y_ControlMode == 1) THEN
 
             ! Compass wind directions in degrees
-            WindDir = wrap_360(LocalVar%NacHeading + (LocalVar%NacVane) * R2D)
+            WindDir = wrap_360(LocalVar%NacHeading + LocalVar%NacVane)
             
             ! Initialize
             IF (LocalVar%iStatus == 0) THEN
@@ -273,7 +270,7 @@ CONTAINS
 
             ! ---- Now get into the guts of the control ----
             ! Yaw error
-            Y_Err = wrap_180(NacHeadingTarget - LocalVar%NacHeading)
+            NacHeadingError = wrap_180(NacHeadingTarget - LocalVar%NacHeading)
 			
             ! Check for deadband
             IF (LocalVar%WE_Vw_F .le. CntrPar%Y_uSwitch) THEN
@@ -284,7 +281,7 @@ CONTAINS
 
             ! yawing right
             IF (YawState == 1) THEN 
-                IF (Y_Err .le. 0) THEN
+                IF (NacHeadingError .le. 0) THEN
                     ! stop yawing
                     YawRateCom = 0.0
                     YawState = 0 
@@ -296,7 +293,7 @@ CONTAINS
                 ENDIF
             ! yawing left
             ELSEIF (YawState == -1) THEN 
-                IF (Y_Err .ge. 0) THEN
+                IF (NacHeadingError .ge. 0) THEN
                     ! stop yawing
                     YawRateCom = 0.0
                     YawState = 0 
@@ -308,11 +305,11 @@ CONTAINS
                 ENDIF
             ! Initiate yaw if outside yaw error threshold
             ELSE
-                IF (Y_Err .gt. deadband*R2D) THEN
+                IF (NacHeadingError .gt. deadband*R2D) THEN
                     YawState = 1 ! yaw right
                 ENDIF
 
-                IF (Y_Err .lt. -deadband*R2D) THEN
+                IF (NacHeadingError .lt. -deadband*R2D) THEN
                     YawState = -1 ! yaw left
                 ENDIF
 
@@ -323,33 +320,26 @@ CONTAINS
             avrSWAP(48)      = YawRateCom
 
             ! Save for debug
-            DebugVar%YawRateCom     = YawRateCom
+            DebugVar%YawRateCom       = YawRateCom
             DebugVar%NacHeadingTarget = NacHeadingTarget
-            DebugVar%NacVaneOffset  = NacVaneOffset
-            DebugVar%YawState       = YawState
-
-            write (*,*) "WindDir: ", WindDir
-            write (*,*) "LocalVar%NacHeading: ", LocalVar%NacHeading
-            write (*,*) "NacHeadingTarget: ", NacHeadingTarget
+            DebugVar%NacVaneOffset    = NacVaneOffset
+            DebugVar%YawState         = YawState
         END IF
     END SUBROUTINE YawRateControl
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE IPC(CntrPar, LocalVar, objInst)
         ! Individual pitch control subroutine
         !   - Calculates the commanded pitch angles for IPC employed for blade fatigue load reductions at 1P and 2P
-        !   - Includes yaw by IPC
 
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
         
         ! Local variables
         REAL(8)                  :: PitComIPC(3), PitComIPCF(3), PitComIPC_1P(3), PitComIPC_2P(3)
         INTEGER(4)               :: K                                       ! Integer used to loop through turbine blades
-        REAL(8)                  :: axisTilt_1P, axisYaw_1P, axisYawF_1P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
+        REAL(8)                  :: axisTilt_1P, axisYaw_1P                 ! Direct axis and quadrature axis outputted by Coleman transform, 1P
         REAL(8), SAVE            :: IntAxisTilt_1P, IntAxisYaw_1P           ! Integral of the direct axis and quadrature axis, 1P
-        REAL(8)                  :: axisTilt_2P, axisYaw_2P, axisYawF_2P    ! Direct axis and quadrature axis outputted by Coleman transform, 1P
+        REAL(8)                  :: axisTilt_2P, axisYaw_2P                 ! Direct axis and quadrature axis outputted by Coleman transform, 1P
         REAL(8), SAVE            :: IntAxisTilt_2P, IntAxisYaw_2P           ! Integral of the direct axis and quadrature axis, 1P
-        REAL(8)                  :: IntAxisYawIPC_1P                        ! IPC contribution with yaw-by-IPC component
-        REAL(8)                  :: Y_MErrF, Y_MErrF_IPC                    ! Unfiltered and filtered yaw alignment error [rad]
         
         TYPE(ControlParameters), INTENT(INOUT)  :: CntrPar
         TYPE(LocalVariables), INTENT(INOUT)     :: LocalVar
@@ -368,42 +358,22 @@ CONTAINS
         ! Pass rootMOOPs through the Coleman transform to get the tilt and yaw moment axis
         CALL ColemanTransform(LocalVar%rootMOOP, LocalVar%Azimuth, NP_1, axisTilt_1P, axisYaw_1P)
         CALL ColemanTransform(LocalVar%rootMOOP, LocalVar%Azimuth, NP_2, axisTilt_2P, axisYaw_2P)
-        
-        ! High-pass filter the MBC yaw component and filter yaw alignment error, and compute the yaw-by-IPC contribution
-        IF (CntrPar%Y_ControlMode == 2) THEN
-            Y_MErrF = SecLPFilter(LocalVar%NacVane, LocalVar%DT, CntrPar%Y_IPC_omegaLP, CntrPar%Y_IPC_zetaLP, LocalVar%iStatus, .FALSE., objInst%instSecLPF)
-            Y_MErrF_IPC = PIController(Y_MErrF, CntrPar%Y_IPC_KP(1), CntrPar%Y_IPC_KI(1), -CntrPar%Y_IPC_IntSat, CntrPar%Y_IPC_IntSat, LocalVar%DT, 0.0, .FALSE., objInst%instPI)
-        ELSE
-            axisYawF_1P = axisYaw_1P
-            Y_MErrF = 0.0
-            Y_MErrF_IPC = 0.0
-        END IF
-        
+
         ! Integrate the signal and multiply with the IPC gain
-        IF ((CntrPar%IPC_ControlMode >= 1) .AND. (CntrPar%Y_ControlMode /= 2)) THEN
-            IntAxisTilt_1P = IntAxisTilt_1P + LocalVar%DT * CntrPar%IPC_KI(1) * axisTilt_1P
-            IntAxisYaw_1P = IntAxisYaw_1P + LocalVar%DT * CntrPar%IPC_KI(1) * axisYawF_1P
-            IntAxisTilt_1P = saturate(IntAxisTilt_1P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
-            IntAxisYaw_1P = saturate(IntAxisYaw_1P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
-            
-            IF (CntrPar%IPC_ControlMode >= 2) THEN
-                IntAxisTilt_2P = IntAxisTilt_2P + LocalVar%DT * CntrPar%IPC_KI(2) * axisTilt_2P
-                IntAxisYaw_2P = IntAxisYaw_2P + LocalVar%DT * CntrPar%IPC_KI(2) * axisYawF_2P
-                IntAxisTilt_2P = saturate(IntAxisTilt_2P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
-                IntAxisYaw_2P = saturate(IntAxisYaw_2P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
-            END IF
-        ELSE
-            IntAxisTilt_1P = 0.0
-            IntAxisYaw_1P = 0.0
-            IntAxisTilt_2P = 0.0
-            IntAxisYaw_2P = 0.0
-        END IF
+        IntAxisTilt_1P = IntAxisTilt_1P + LocalVar%DT * CntrPar%IPC_KI(1) * axisTilt_1P
+        IntAxisYaw_1P = IntAxisYaw_1P + LocalVar%DT * CntrPar%IPC_KI(1) * axisYaw_1P
+        IntAxisTilt_1P = saturate(IntAxisTilt_1P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
+        IntAxisYaw_1P = saturate(IntAxisYaw_1P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
         
-        ! Add the yaw-by-IPC contribution
-        IntAxisYawIPC_1P = IntAxisYaw_1P + Y_MErrF_IPC
+        IF (CntrPar%IPC_ControlMode >= 2) THEN
+            IntAxisTilt_2P = IntAxisTilt_2P + LocalVar%DT * CntrPar%IPC_KI(2) * axisTilt_2P
+            IntAxisYaw_2P = IntAxisYaw_2P + LocalVar%DT * CntrPar%IPC_KI(2) * axisYaw_2P
+            IntAxisTilt_2P = saturate(IntAxisTilt_2P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
+            IntAxisYaw_2P = saturate(IntAxisYaw_2P, -CntrPar%IPC_IntSat, CntrPar%IPC_IntSat)
+        END IF
         
         ! Pass direct and quadrature axis through the inverse Coleman transform to get the commanded pitch angles
-        CALL ColemanTransformInverse(IntAxisTilt_1P, IntAxisYawIPC_1P, LocalVar%Azimuth, NP_1, CntrPar%IPC_aziOffset(1), PitComIPC_1P)
+        CALL ColemanTransformInverse(IntAxisTilt_1P, IntAxisYaw_1P, LocalVar%Azimuth, NP_1, CntrPar%IPC_aziOffset(1), PitComIPC_1P)
         CALL ColemanTransformInverse(IntAxisTilt_2P, IntAxisYaw_2P, LocalVar%Azimuth, NP_2, CntrPar%IPC_aziOffset(2), PitComIPC_2P)
         
         ! Sum nP IPC contributions and store to LocalVar data type
@@ -469,10 +439,6 @@ CONTAINS
     END FUNCTION FloatingFeedback
 !-------------------------------------------------------------------------------------------------------------------------------
     SUBROUTINE FlapControl(avrSWAP, CntrPar, LocalVar, objInst)
-        ! Yaw rate controller
-        !       Y_ControlMode = 0, No yaw control
-        !       Y_ControlMode = 1, Simple yaw rate control using yaw drive
-        !       Y_ControlMode = 2, Yaw by IPC (accounted for in IPC subroutine)
         USE ROSCO_Types, ONLY : ControlParameters, LocalVariables, ObjectInstances
     
         REAL(C_FLOAT), INTENT(INOUT) :: avrSWAP(*) ! The swap array, used to pass data to, and receive data from, the DLL controller.

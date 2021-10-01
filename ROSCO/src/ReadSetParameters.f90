@@ -66,7 +66,7 @@ CONTAINS
         LocalVar%GenSpeed = avrSWAP(20)
         LocalVar%RotSpeed = avrSWAP(21)
         LocalVar%GenTqMeas = avrSWAP(23)
-        LocalVar%NacVane = avrSWAP(24)
+        LocalVar%NacVane = avrSWAP(24) * R2D
         LocalVar%HorWindV = avrSWAP(27)
         LocalVar%rootMOOP(1) = avrSWAP(30)
         LocalVar%rootMOOP(2) = avrSWAP(31)
@@ -337,12 +337,6 @@ CONTAINS
         CALL ParseAry(UnControllerParameters, CurLine, 'Y_ErrThresh', CntrPar%Y_ErrThresh, 2, accINFILE(1), ErrVar )
         CALL ParseInput(UnControllerParameters,CurLine,'Y_Rate',accINFILE(1),CntrPar%Y_Rate,ErrVar)
         CALL ParseInput(UnControllerParameters,CurLine,'Y_MErrSet',accINFILE(1),CntrPar%Y_MErrSet,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_IntSat',accINFILE(1),CntrPar%Y_IPC_IntSat,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_n',accINFILE(1),CntrPar%Y_IPC_n,ErrVar)
-        CALL ParseAry(UnControllerParameters,CurLine,'Y_IPC_KP', CntrPar%Y_IPC_KP, CntrPar%Y_IPC_n, accINFILE(1), ErrVar)
-        CALL ParseAry(UnControllerParameters,CurLine,'Y_IPC_KI', CntrPar%Y_IPC_KI, CntrPar%Y_IPC_n, accINFILE(1), ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_omegaLP',accINFILE(1),CntrPar%Y_IPC_omegaLP,ErrVar)
-        CALL ParseInput(UnControllerParameters,CurLine,'Y_IPC_zetaLP',accINFILE(1),CntrPar%Y_IPC_zetaLP,ErrVar)
         CALL ReadEmptyLine(UnControllerParameters,CurLine)
 
         !------------ FORE-AFT TOWER DAMPER CONSTANTS ------------
@@ -830,17 +824,7 @@ CONTAINS
 
         ! ---- Yaw Control ----
         IF (CntrPar%Y_ControlMode > 0) THEN
-            IF (CntrPar%Y_ControlMode == 2) THEN
-                IF (CntrPar%Y_IPC_omegaLP <= 0.0)  THEN
-                    ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg  = 'Y_IPC_omegaLP must be greater than zero.'
-                ENDIF
-                
-                IF (CntrPar%Y_IPC_zetaLP <= 0.0)  THEN
-                    ErrVar%aviFAIL = -1
-                    ErrVar%ErrMsg  = 'Y_IPC_zetaLP must be greater than zero.'
-                ENDIF
-            ELSEIF (CntrPar%Y_ControlMode == 1) THEN
+            IF (CntrPar%Y_ControlMode == 1) THEN
                 IF (CntrPar%Y_ErrThresh(1) <= 0.0)  THEN
                     ErrVar%aviFAIL = -1
                     ErrVar%ErrMsg  = 'Y_ErrThresh must be greater than zero.'
