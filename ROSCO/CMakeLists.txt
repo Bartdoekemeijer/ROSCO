@@ -8,17 +8,23 @@ if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Choose the build type: Debug RelWithDebInfo Release" FORCE)
 endif()
 
+option(ZMQ_CLIENT "Enable use of ZeroMQ client" off)
+
 message(STATUS "CMAKE_Fortran_COMPILER_ID = ${CMAKE_Fortran_COMPILER_ID}")
 if(APPLE OR UNIX)
   # Enable .dll export
   if (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -r8 -double-size 64 -cpp -lzmq -no-wrap-margin")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -r8 -double-size 64 -cpp -no-wrap-margin")
   else()
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -ffree-line-length-0 -fdefault-real-8 -fdefault-double-8 -cpp -lzmq")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -ffree-line-length-0 -fdefault-real-8 -fdefault-double-8 -cpp ")
   endif()
 elseif(WIN32 AND MINGW)
   # Ensure static linking to avoid requiring Fortran runtime dependencies
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ffree-line-length-0 -static-libgcc -static-libgfortran -static -fdefault-real-8 -fdefault-double-8 -cpp -lzmq")
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ffree-line-length-0 -static-libgcc -static-libgfortran -static -fdefault-real-8 -fdefault-double-8 -cpp")
+endif()
+
+if(ZMQ_CLIENT)
+  set(CMAKE_Forran_FLAGS ${CMAKE_Fortran_FLAGS} -lzmq)
 endif()
 
 set(SOURCES
@@ -30,25 +36,29 @@ set(SOURCES
     src/Filters.f90
     src/Functions.f90
     src/ReadSetParameters.f90
+    )
+    
+    if(ZMQ_CLIENT)
+    set(SOURCES ${SOURCES}
     src/ZeroMQInterface.f90
-    src/zmq_client.c
-    src/zmq_client.o
-)
+    src/zmq_client.c)
+    
+    # Add ZeroMQ library
+    find_package(PkgConfig)
+    pkg_check_modules(PC_ZeroMQ libzmq)
+    find_path(ZeroMQ_INCLUDE_DIR
+    NAMES zmq.h
+    PATHS ${PC_ZeroMQ_INCLUDE_DIRS}
+    )
+    find_library(ZeroMQ_LIBRARY
+    NAMES zmq
+    PATHS ${PC_ZeroMQ_LIBRARY_DIRS}
+    )
+    add_definitions(-DZMQ_CLIENT="TRUE")
+endif()
 
 # Library
 add_library(discon SHARED ${SOURCES})
-
-# Add ZeroMQ library
-find_package(PkgConfig)
-pkg_check_modules(PC_ZeroMQ libzmq)
-find_path(ZeroMQ_INCLUDE_DIR
-        NAMES zmq.h
-        PATHS ${PC_ZeroMQ_INCLUDE_DIRS}
-        )
-find_library(ZeroMQ_LIBRARY
-        NAMES zmq
-        PATHS ${PC_ZeroMQ_LIBRARY_DIRS}
-        )
 
 # add the ZeroMQ include directory to our compile directives
 target_include_directories(discon PUBLIC ${ZeroMQ_INCLUDE_DIR})

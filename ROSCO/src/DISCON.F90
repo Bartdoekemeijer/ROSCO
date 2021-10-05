@@ -25,8 +25,9 @@ USE             :: Controllers
 USE             :: Constants
 USE             :: Filters
 USE             :: Functions
-USE             :: ZeroMQInterface
-
+#ifdef ZMQ_CLIENT
+    USE             :: ZeroMQInterface
+#endif
 IMPLICIT NONE
 ! Enable .dll export
 #ifndef IMPLICIT_DLLEXPORT
@@ -75,9 +76,11 @@ CALL PreFilterMeasuredSignals(CntrPar, LocalVar, objInst)
 CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
 
 IF ((LocalVar%iStatus >= 0) .AND. (ErrVar%aviFAIL >= 0))  THEN  ! Only compute control calculations if no error has occurred and we are not on the last time step
+#ifdef ZMQ_CLIENT
     IF (zmqVar%ZMQ_Flag) THEN
         CALL UpdateZeroMQ(LocalVar, zmqVar)
     ENDIF
+#endif
     
     CALL WindSpeedEstimator(LocalVar, CntrPar, objInst, PerfData, DebugVar, ErrVar)
     CALL ComputeVariablesSetpoints(CntrPar, LocalVar, objInst)
