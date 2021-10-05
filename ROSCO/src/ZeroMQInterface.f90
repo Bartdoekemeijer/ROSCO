@@ -60,6 +60,7 @@ CONTAINS
             IF (zmqVar%ZMQ_YawCntrl > 0) THEN
                 ErrVar%ErrMsg = " >> The ZeroMQ client has not been properly installed, " &
                                 //"please install it to use ZMQ_YawCntrl == 1."
+                ErrVar%ErrMsg = RoutineName//':'//TRIM(ErrVar%ErrMsg)
             ENDIF
 #endif
 
