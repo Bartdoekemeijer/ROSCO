@@ -234,9 +234,9 @@ CONTAINS
         REAL(8), SAVE :: NacVaneOffset                          ! For offset control
         INTEGER, SAVE :: YawState                               ! Yawing left(-1), right(1), or stopped(0)
         REAL(8)       :: WindDir                                ! Instantaneous wind dind direction, equal to turbine nacelle heading plus the measured vane angle (deg)
-        REAL(8)       :: WindDirMinusOffset                     ! Instantaneous wind direction minus the assigned vane offset (deg)
-        REAL(8)       :: WindDirMinusOffsetCosF                 ! Time-filtered x-component of WindDirMinusOffset (deg)
-        REAL(8)       :: WindDirMinusOffsetSinF                 ! Time-filtered y-component of WindDirMinusOffset (deg)
+        REAL(8)       :: WindDirPlusOffset                     ! Instantaneous wind direction minus the assigned vane offset (deg)
+        REAL(8)       :: WindDirPlusOffsetCosF                 ! Time-filtered x-component of WindDirPlusOffset (deg)
+        REAL(8)       :: WindDirPlusOffsetSinF                 ! Time-filtered y-component of WindDirPlusOffset (deg)
         REAL(8)       :: NacHeadingTarget                       ! Time-filtered wind direction minus the assigned vane offset (deg)
         REAL(8), SAVE :: NacHeadingError                        ! Yaw error (deg)
         REAL(8)       :: YawRateCom                             ! Commanded yaw rate (deg/s)
@@ -263,10 +263,10 @@ CONTAINS
             ENDIF
 
             ! Update filtered wind direction
-            WindDirMinusOffset = wrap_360(WindDir - NacVaneOffset) ! (deg)
-            WindDirMinusOffsetCosF = LPFilter(cos(WindDirMinusOffset*D2R), LocalVar%DT, CntrPar%F_YawErr, LocalVar%iStatus, .FALSE., objInst%instLPF) ! (-)
-            WindDirMinusOffsetSinF = LPFilter(sin(WindDirMinusOffset*D2R), LocalVar%DT, CntrPar%F_YawErr, LocalVar%iStatus, .FALSE., objInst%instLPF) ! (-)
-            NacHeadingTarget = wrap_360(atan2(WindDirMinusOffsetSinF, WindDirMinusOffsetCosF) * R2D) ! (deg)
+            WindDirPlusOffset = wrap_360(WindDir + NacVaneOffset) ! (deg)
+            WindDirPlusOffsetCosF = LPFilter(cos(WindDirPlusOffset*D2R), LocalVar%DT, CntrPar%F_YawErr, LocalVar%iStatus, .FALSE., objInst%instLPF) ! (-)
+            WindDirPlusOffsetSinF = LPFilter(sin(WindDirPlusOffset*D2R), LocalVar%DT, CntrPar%F_YawErr, LocalVar%iStatus, .FALSE., objInst%instLPF) ! (-)
+            NacHeadingTarget = wrap_360(atan2(WindDirPlusOffsetSinF, WindDirPlusOffsetCosF) * R2D) ! (deg)
 
             ! ---- Now get into the guts of the control ----
             ! Yaw error
