@@ -36,11 +36,11 @@ set(SOURCES
     src/Filters.f90
     src/Functions.f90
     src/ReadSetParameters.f90
+    src/ZeroMQInterface.f90
     )
     
-    if(ZMQ_CLIENT)
+if(ZMQ_CLIENT)
     set(SOURCES ${SOURCES}
-    src/ZeroMQInterface.f90
     src/zmq_client.c)
     
     # Add ZeroMQ library
