@@ -4,17 +4,20 @@ module ZeroMQInterface
     ! 
 
 CONTAINS
-    SUBROUTINE UpdateZeroMQ(LocalVar, zmqVar)
-        USE ROSCO_Types, ONLY : LocalVariables, ZMQ_Variables
+    SUBROUTINE UpdateZeroMQ(LocalVar, zmqVar, ErrVar)
+        USE ROSCO_Types, ONLY : LocalVariables, ZMQ_Variables, ErrorVariables
         IMPLICIT NONE
         TYPE(LocalVariables), INTENT(INOUT) :: LocalVar
         TYPE(ZMQ_Variables), INTENT(INOUT)  :: zmqVar
+        TYPE(ErrorVariables), INTENT(INOUT) :: ErrVar
 
         character(256) :: zmq_address
         real(C_DOUBLE) :: setpoints(5)
         real(C_DOUBLE) :: turbine_measurements(16)
+        CHARACTER(*), PARAMETER                 :: RoutineName = 'UpdateZeroMQ'
 
         ! C interface with ZeroMQ client
+#ifdef ZMQ_CLIENT
         interface
             subroutine zmq_client(zmq_address, measurements, setpoints) bind(C, name="zmq_client")
                 import :: C_CHAR, C_DOUBLE
@@ -24,7 +27,7 @@ CONTAINS
                 real(C_DOUBLE) :: setpoints(5)
             end subroutine zmq_client
         end interface
-
+#endif
 		! Increment call counter by 1
 		zmqVar%ZMQ_UpdateCounter = zmqVar%ZMQ_UpdateCounter + 1
 		
@@ -49,7 +52,16 @@ CONTAINS
 			turbine_measurements(16) = LocalVar%Azimuth
 
 			write (zmq_address, "(A,A)") TRIM(zmqVar%ZMQ_CommAddress), C_NULL_CHAR
+#ifdef ZMQ_CLIENT
 			call zmq_client(zmq_address, turbine_measurements, setpoints)
+#else
+            ! Add RoutineName to error message
+            ErrVar%aviFAIL = -1
+            IF (zmqVar%ZMQ_YawCntrl > 0) THEN
+                ErrVar%ErrMsg = " >> The ZeroMQ client has not been properly installed, " &
+                                //"please install it to use ZMQ_YawCntrl == 1."
+            ENDIF
+#endif
 
 			! write (*,*) "ZeroMQInterface: torque setpoint from ssc: ", setpoints(1)
 			! write (*,*) "ZeroMQInterface: yaw setpoint from ssc: ", setpoints(2)
