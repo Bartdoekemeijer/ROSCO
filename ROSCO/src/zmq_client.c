@@ -26,10 +26,14 @@ int zmq_client (
     double setpoints[5]
 )
 {
-    int verbose = 0; // Variable to define verbose
-    int i = 0, ns = 5, nm = 16, ml = 16;  // Number of setpoints and measurements, respectively, and float precision (character length)
-    int slm = ml * nm + (nm - 1);  // Measurement string length
-    int sls = ml * ns + (ns - 1);  // Setpoint string length
+	int num_measurements = 16;  // Number of setpoints and measurements, respectively, and float precision (character length)
+	int char_buffer_size_single = 20; // Char buffer for a single measurement
+    int char_buffer_size_array = (num_measurements * (char_buffer_size_single + 1));  // Char buffer for full messages to and from ROSCO
+	char string_to_ssc[char_buffer_size_array];
+    char string_from_ssc[char_buffer_size_array];
+
+	int verbose = 0; // Variable to define verbose
+	
     if (verbose == 1) {
         printf ("Connecting to ZeroMQ server at %s...\n", zmq_address);
     }
@@ -40,19 +44,20 @@ int zmq_client (
     zmq_connect (requester, zmq_address);  // string_to_zmq is something like "tcp://localhost:5555"
 
     // Create a string with measurements to be sent to ZeroMQ server (e.g., Python)
-    char a[slm], string_to_ssc[slm], b[ml];
-    // char b[slm];
-    sprintf(a, "%016.5f,", measurements[0]);
-    // printf ("zmq_client.c: a[ml]: measurements[0]: %s\n", a);
-    i = 1;
-    while (i < nm) {
-        sprintf(b, "%016.5f,", measurements[i]);
+    char a[char_buffer_size_array], b[char_buffer_size_single];
+    sprintf(b, "%.6e", measurements[0]);
+	strncpy(a, b, char_buffer_size_single);
+    //printf ("zmq_client.c: a[char_buffer_size_single]: measurements[0]: %s\n", a);
+    int i = 1;
+    while (i < num_measurements) {
+		strcat(a, ",");  // Add a comma
+		sprintf(b, "%.6e", measurements[i]);  // Add value
         strcat(a, b);  // Concatenate b to a
-        // printf ("zmq_client.c: b[ml]: measurements[i]: %s\n", b);
-        // printf (" --> zmq_client.c: a[ml]: measurements[i]: %s\n", a);
+        //printf ("zmq_client.c: b[char_buffer_size_single]: measurements[i]: %s\n", b);
+        //printf (" --> zmq_client.c: a[char_buffer_size_single]: measurements[i]: %s\n", a);
         i = i + 1;
     }
-    strncpy(string_to_ssc, a, slm);
+    strncpy(string_to_ssc, a, char_buffer_size_array);
 
     // Print the string
     if (verbose == 1) {
@@ -60,9 +65,8 @@ int zmq_client (
     }
 
     // Core ZeroMQ communication: receive data and send back signals
-    char string_from_ssc[sls];  // Buffer to receive message in
-    zmq_send (requester, string_to_ssc, slm, 0);
-    zmq_recv (requester, string_from_ssc, sls, 0);
+    zmq_send (requester, string_to_ssc, char_buffer_size_array, 0);
+    zmq_recv (requester, string_from_ssc, char_buffer_size_array, 0);
 
     if (verbose == 1) {
         printf ("zmq_client.c: Received a response: %s\n", string_from_ssc);

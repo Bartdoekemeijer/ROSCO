@@ -115,13 +115,15 @@ class turbine_zmq_server():
         timeout_ms = int(self.timeout * 1000)
         if poller.poll(timeout_ms):
             # Receive measurements over network protocol
-            message_in = self.socket.recv()
+            message_in = self.socket.recv_string()
         else:
             raise IOError("[%s] Connection to '%s' timed out."
                           % (self.identifier, self.network_address))
 
         # Convert to individual strings and then to floats
-        measurements = bytes.decode(message_in).split(',')
+        measurements = message_in
+        # measurements = bytes.decode(message_in)
+        measurements = measurements.replace('\x00', '').split(',')
         measurements = [float(m) for m in measurements]
 
         # Convert to a measurement dict
@@ -168,7 +170,7 @@ class turbine_zmq_server():
 
 
 if __name__ == "__main__":
-    s = turbine_zmq_server(network_address="tcp://*:5555", timeout=10.0, verbose=True)
+    s = turbine_zmq_server(network_address="tcp://*:5555", timeout=3600.0, verbose=True)
     while True:
         #  Get latest measurements from ROSCO
         measurements = s.get_measurements()

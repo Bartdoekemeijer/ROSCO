@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
-project(ROSCO VERSION 2.3.0 LANGUAGES Fortran)
+project(ROSCO VERSION 2.3.0 LANGUAGES Fortran C)
 
 set(CMAKE_Fortran_MODULE_DIRECTORY "${CMAKE_BINARY_DIR}/ftnmods")
 
@@ -14,17 +14,13 @@ message(STATUS "CMAKE_Fortran_COMPILER_ID = ${CMAKE_Fortran_COMPILER_ID}")
 if(APPLE OR UNIX)
   # Enable .dll export
   if (CMAKE_Fortran_COMPILER_ID STREQUAL "Intel")
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -r8 -double-size 64 -cpp -no-wrap-margin")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -r8 -double-size 64 -cpp -lzmq -no-wrap-margin")
   else()
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -ffree-line-length-0 -fdefault-real-8 -fdefault-double-8 -cpp ")
+    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -DIMPLICIT_DLLEXPORT -ffree-line-length-0 -fdefault-real-8 -fdefault-double-8 -cpp -lzmq")
   endif()
 elseif(WIN32 AND MINGW)
   # Ensure static linking to avoid requiring Fortran runtime dependencies
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ffree-line-length-0 -static-libgcc -static-libgfortran -static -fdefault-real-8 -fdefault-double-8 -cpp")
-endif()
-
-if(ZMQ_CLIENT)
-  set(CMAKE_Forran_FLAGS ${CMAKE_Fortran_FLAGS} -lzmq)
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -ffree-line-length-0 -static-libgcc -static-libgfortran -static -fdefault-real-8 -fdefault-double-8 -cpp -lzmq")
 endif()
 
 set(SOURCES
@@ -37,34 +33,40 @@ set(SOURCES
     src/Functions.f90
     src/ReadSetParameters.f90
     src/ZeroMQInterface.f90
-    )
-    
+)
+
 if(ZMQ_CLIENT)
+	# Find ZeroMQ installation
+	find_package(PkgConfig)
+	pkg_check_modules(PC_ZeroMQ libzmq)
+	find_path(ZeroMQ_INCLUDE_DIR
+			NAMES zmq.h
+			PATHS ${PC_ZeroMQ_INCLUDE_DIRS}
+			)
+	find_library(ZeroMQ_LIBRARY
+			NAMES zmq
+			PATHS ${PC_ZeroMQ_LIBRARY_DIRS}
+			)
+	include_directories(${ZeroMQ_INCLUDE_DIR})
+	
+
+	# Compile C-based ZeroMQ client as object library
+	add_compile_options(-I${ZeroMQ_INCLUDE_DIR} -l${ZeroMQ_LIBRARY} -fPIC)
+	add_library(zmq_client OBJECT ../src/zmq_client.c)
+
+	# Add definition
+	add_definitions(-DZMQ_CLIENT="TRUE")
     set(SOURCES ${SOURCES}
-    src/zmq_client.c)
-    
-    # Add ZeroMQ library
-    find_package(PkgConfig)
-    pkg_check_modules(PC_ZeroMQ libzmq)
-    find_path(ZeroMQ_INCLUDE_DIR
-    NAMES zmq.h
-    PATHS ${PC_ZeroMQ_INCLUDE_DIRS}
-    )
-    find_library(ZeroMQ_LIBRARY
-    NAMES zmq
-    PATHS ${PC_ZeroMQ_LIBRARY_DIRS}
-    )
-    add_definitions(-DZMQ_CLIENT="TRUE")
+	$<TARGET_OBJECTS:zmq_client>)
 endif()
 
-# Library
+# Discon library
 add_library(discon SHARED ${SOURCES})
 
-# add the ZeroMQ include directory to our compile directives
-target_include_directories(discon PUBLIC ${ZeroMQ_INCLUDE_DIR})
-
-# at the ZeroMQ library to our link directive
-target_link_libraries(discon PUBLIC ${ZeroMQ_LIBRARY})
+if(ZMQ_CLIENT)
+	target_include_directories(discon PUBLIC ${ZeroMQ_INCLUDE_DIR})
+	target_link_libraries(discon PUBLIC ${ZeroMQ_LIBRARY})
+endif()
 
 install(TARGETS discon
   EXPORT "${CMAKE_PROJECT_NAME}Libraries"
